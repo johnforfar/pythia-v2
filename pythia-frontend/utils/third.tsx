@@ -1,0 +1,17 @@
+export const thirds = [
+  'Snowflake',
+  'Databricks',
+  'The Graph',
+  'Arweave',
+  'IPFS',
+  'Mintify',
+  '01Node',
+  'Ascend.io',
+  'Confluent',
+  'Nebula-ai',
+  'aiven',
+  'Validationcloud',
+  'ValidationCloud',
+  'Chainalysis',
+  'Infura',
+]

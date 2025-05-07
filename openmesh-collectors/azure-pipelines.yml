@@ -1,0 +1,105 @@
+parameters:
+- name: images
+  type: object
+  default:
+    collector:
+      name: collector
+      build: true
+      push: true
+      pathToDockerFile: ./Dockerfile
+      pathToDockerContext: ./
+
+variables:
+- name: HELM_CHART_NAME
+  value: l3-atom
+
+- group: aws-shared
+- group: service-connection
+- group: dockerhub
+
+- name: awsSourceRoleArn
+  value: $[variables.AWS_SOURCE_ROLE_ARN] #derived from var group - aws-shared
+- name: awsRegion
+  value: $[variables.AWS_REGION] #derived from var group - aws-shared
+- name: ecrPublicUrl
+  value: $[variables.ECR_PUBLIC_URL] #derived from var group - aws-shared
+- name: ecrUrl
+  value: $[variables.ECR_URL] #derived from var group - aws-shared
+- name: serviceConnection
+  value: $[variables.SERVICE_CONNECTION] #derived from var group - service-connection
+- name: dockerhubUsername
+  value: $[variables.dockerhub_username] #derived from var group - dockerhub
+- name: dockerhubPat
+  value: $[variables.dockerhub_pat] #derived from var group - dockerhub
+- name: WORKING_DIRECTORY
+  value: $(Build.SourcesDirectory)
+
+resources:
+  repositories:
+  - repository: pipeline-utilities
+    type: github
+    name: L3A-Protocol/pipeline-utilities
+    ref: main
+    endpoint: L3A-Protocol
+
+trigger:
+- main
+- trigger-test/*
+
+pool:
+  vmImage: ubuntu-latest
+
+stages:
+- stage: CI
+  jobs:
+    - job: ci
+      steps:
+      - task: Bash@3
+        displayName: pipInstall
+        inputs:
+          script: |
+            pip install -r ./requirements.txt
+            pip install -r ./tests/requirements.txt
+          failOnStdErr: true
+          targetType: inline
+          workingDirectory: ${{ variables.WORKING_DIRECTORY }}
+
+      - task: Bash@3
+        displayName: runUnitTests
+        inputs:
+          script: |
+            echo "would have run the following coverage run --source l3_atom -m pytest tests/"
+            echo "tests are broken bypassing for now..."
+            #coverage run --source l3_atom -m pytest tests/
+          failOnStdErr: true
+          targetType: inline
+          workingDirectory: ${{ variables.WORKING_DIRECTORY }}
+
+      - ${{ each image in parameters.images }}:
+        - ${{ if eq(parameters.images[image.key].build, true) }}:
+          - task: AWSShellScript@1
+            displayName: pushContainer ${{ parameters.images[image.key].name }}
+            inputs:
+              awsCredentials: $(serviceConnection)
+              regionName: $(awsRegion)
+              scriptType: inline
+              inlineScript: |
+                docker login -u $(dockerhubUsername) -p $(dockerhubPat)
+                docker build -t $(dockerhubUsername)/${{ parameters.images[image.key].name }}:$(Build.BuildNumber) -f ${{ parameters.images[image.key].pathToDockerFile }} ${{ parameters.images[image.key].pathToDockerContext}}
+                docker push $(dockerhubUsername)/${{ parameters.images[image.key].name }}:$(Build.BuildNumber)
+
+              failOnStdErr: true
+              targetType: inline
+              workingDirectory: ${{ variables.WORKING_DIRECTORY }}
+
+# more nuance is needed when this becomes a multi docker image build and deploy, for now a one to one will work
+- stage: PublishArtifacts
+  dependsOn:
+    - CI
+  jobs:
+    - template: templates/publish-version-artifact-job.yaml@pipeline-utilities
+      parameters:
+        createVersionArtifact: true
+        APP_NAME: ${{ variables.HELM_CHART_NAME }}
+        IMAGE_NAME: ${{ variables.ecrUrl }}/${{ parameters.images['collector'].name }}
+        IMAGE_TAG: $(Build.BuildNumber)

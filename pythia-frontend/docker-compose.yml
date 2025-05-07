@@ -1,0 +1,18 @@
+version: "3.9" # Obsolete, can be removed
+
+services:
+  frontend:
+    container_name: pythia-frontend
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3111:3111" # As per package.json and Dockerfile
+    env_file:
+      - .env # We'll create this next
+    networks:
+      - pythia_net # Connect to the same network as the backend
+
+networks:
+  pythia_net:
+    external: true 
