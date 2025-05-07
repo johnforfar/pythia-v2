@@ -1,0 +1,51 @@
+# Environment variables
+.env
+**/.env
+openmesh-collectors/keys/.env
+pythia-backend/.env
+pythia-frontend/.env
+
+# Node.js
+node_modules/
+**/node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+package-lock.json # Often committed, but can be ignored depending on team policy
+# yarn.lock # Uncomment if using Yarn
+# pnpm-lock.yaml # Uncomment if using pnpm
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+venv_collectors/ # Specific venv for collectors if created locally
+*.egg-info/
+.ipynb_checkpoints
+
+# Docker - Ignore docker contexts and potentially volumes if mapped locally
+.dockerignore # Keep this if you want fine-grained Docker build context control
+# docker-volumes/ # Example if you map volumes to local dirs
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.idea/
+.vscode/ # Only ignore if not sharing settings
+
+# Build artifacts (example)
+dist/
+build/
+*.out
+
+# Log files
+*.log
+logs/
+
+# Temporary files
+*.tmp
+*.swp 
