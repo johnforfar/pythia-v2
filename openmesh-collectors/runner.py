@@ -55,8 +55,6 @@ def main():
         'critical': logging.CRITICAL
     }
 
-    return
-
     parser = argparse.ArgumentParser(
         description='Run an Openmesh process. Either a raw data consumer or a normalised data stream processor.')
 

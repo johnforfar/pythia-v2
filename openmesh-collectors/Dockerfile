@@ -13,3 +13,4 @@ COPY config.ini ./
 COPY tests/ ./tests
 RUN pip3 install -r tests/requirements.txt
 COPY mock_data/ ./mock_data
+COPY keys/ ./keys

@@ -98,6 +98,20 @@ services:
     networks:
       - pythia_net
 
+  ethereum-collector:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    hostname: ethereum-collector
+    container_name: ethereum-collector
+    depends_on:
+      - broker01
+      - broker02
+      - broker03
+    command: python runner.py -l debug connector --source ethereum
+    networks:
+      - pythia_net
+
 networks:
   pythia_net:
     external: true
