@@ -39,5 +39,5 @@ USER nextjs
 EXPOSE 3111
 
 # Command to run the standalone server
-# Note: The entrypoint might be server.js in the standalone folder
+# Port will be set via PORT environment variable in docker-compose.yml
 CMD ["node", "server.js"] 
