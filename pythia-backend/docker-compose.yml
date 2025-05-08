@@ -10,6 +10,8 @@ services:
       - "3000:3000"
     env_file:
       - .env
+    environment:
+      - DATABASE_URL=postgresql://pythiauser:pythiapassword@postgres_db:5432/pythiadb?schema=public
     networks:
       - pythia_net
 
