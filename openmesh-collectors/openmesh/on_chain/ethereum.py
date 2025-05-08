@@ -59,6 +59,10 @@ class EthereumBlock(EthereumObject):
     gasLimit: Decimal
     gasUsed: Decimal
     blockTimestamp: int
+    # Add new fields from Dencun upgrade (EIP-4844)
+    blobGasUsed: int = None
+    excessBlobGas: int = None
+    parentBeaconBlockRoot: str = None
 
 
 @dataclasses.dataclass
@@ -140,14 +144,33 @@ class Ethereum(ChainFeed):
         return None
 
     async def subscribe(self, conn, feeds, symbols):
-        # conn is the Ethereum instance itself (passed as feed_instance from AsyncConnectionManager)
-        # self is also the Ethereum instance.
-        # We should use self.make_call, not conn.make_call or self.conn.make_call
-        blocks_res = await self.make_call('eth_subscribe', ['newHeads'])
+        # conn is the WSRPC instance (passed as feed_instance from AsyncConnectionManager)
+        # self is the Ethereum instance.
+        # Attempt to subscribe
+        blocks_res = await conn.make_call('eth_subscribe', ['newHeads'])
         logging.debug(
-            "%s: Attempting to subscribe to newHeads with result %s", self.name, blocks_res)
-        self.block_sub_id = blocks_res.get('result', None)
-        logging.info(f"Subscribed to newHeads with id {self.block_sub_id}")
+            "%s: Attempting to subscribe to newHeads, make_call returned: %s", self.name, blocks_res)
+
+        # --- PATCH ---
+        # Problem: make_call seems to return the first event, not the RPC response result.
+        # Try to extract the subscription ID from the event\'s params if possible.
+        extracted_sub_id = None
+        if isinstance(blocks_res, dict):
+            if 'result' in blocks_res: # It might be the actual response after all?
+                 extracted_sub_id = blocks_res['result']
+                 logging.info("Got subscription ID from 'result' field: %s", extracted_sub_id)
+            elif blocks_res.get('method') == 'eth_subscription' and 'params' in blocks_res:
+                if 'subscription' in blocks_res['params']:
+                   extracted_sub_id = blocks_res['params']['subscription']
+                   logging.info("Extracted subscription ID from first event\'s params: %s", extracted_sub_id)
+
+        self.block_sub_id = extracted_sub_id # Will be None if extraction failed
+
+        if not self.block_sub_id:
+             logging.error("FAILED to get a valid subscription ID for newHeads. blocks_res was: %s", blocks_res)
+        else:
+             logging.info(f"Using subscription ID for newHeads: {self.block_sub_id}")
+        # --- END PATCH ---
 
     def hex_to_int(self, hex_str: str):
         return int(hex_str, 16)
@@ -254,19 +277,71 @@ class Ethereum(ChainFeed):
         await self.kafka_backends['token_transfers'].write(transferObj.to_json_string())
 
     async def process_message(self, message: str, conn: AsyncFeed, timestamp: int):
-        msg = json.loads(message)
-        data = msg['params']
-        # For some reason the subscription id can be truncated in the message, so we'll add a few checks to see if the message is a new block
-        if data['subscription'] == self.block_sub_id or data['subscription'] in self.block_sub_id or 'number' in data['result']:
-            block_number = data['result']['number']
-            block = await self.get_block_by_number(self.http_node_conn, block_number)
-            await self._block(conn, block.copy(), timestamp)
-            await self._transactions(conn, block['transactions'], timestamp)
-            logs = await self.get_logs_by_block_number(self.http_node_conn, block_number)
-            for log in logs:
-                topics = log['topics']
-                await self._log(conn, log.copy(), timestamp)
-                if topics[0].casefold() == TRANSFER_TOPIC:
-                    await self._token_transfer(conn, log, timestamp)
-        else:
-            logging.warning(f"Received unknown message {msg}")
+        try:
+            msg = json.loads(message)
+            # Ensure msg is a dictionary and has 'params' before proceeding
+            if not isinstance(msg, dict) or 'params' not in msg:
+                 logging.warning(f"Received message without params field: {message}")
+                 return
+
+            data = msg['params']
+
+            # Ensure data is a dictionary before accessing keys
+            if not isinstance(data, dict):
+                logging.warning(f"Received message with non-dict params: {data}")
+                return
+
+            current_sub_id = data.get('subscription')
+            result_data = data.get('result')
+
+            # Check if it's the block subscription we are expecting
+            is_block_event = False
+            if self.block_sub_id and current_sub_id == self.block_sub_id:
+                 is_block_event = True
+            # Fallback check: if result looks like a block header
+            elif isinstance(result_data, dict) and 'number' in result_data:
+                 is_block_event = True
+                 if current_sub_id != self.block_sub_id:
+                      logging.warning(f"Message looks like block data, but subscription ID mismatch. Got: {current_sub_id}, Expected: {self.block_sub_id}")
+
+            if is_block_event and isinstance(result_data, dict):
+                block_number = result_data.get('number')
+                if block_number is None:
+                     logging.warning(f"Block event message missing 'number' in result: {result_data}")
+                     return
+
+                logging.info(f"Processing block event for number: {block_number}")
+                block = await self.get_block_by_number(self.http_node_conn, block_number)
+                if not block:
+                     logging.error(f"Failed to get block details for number: {block_number}")
+                     return
+
+                await self._block(conn, block.copy(), timestamp) # Pass conn (WSRPC instance)
+                # Ensure block has transactions before processing
+                if 'transactions' in block and block['transactions'] is not None:
+                    await self._transactions(conn, block['transactions'], timestamp) # Pass conn
+                else:
+                    logging.warning(f"Block {block_number} has no transactions field or it is null.")
+
+                logs = await self.get_logs_by_block_number(self.http_node_conn, block_number)
+                if logs is None:
+                     logging.error(f"Failed to get logs for block number: {block_number}")
+                     return
+
+                for log in logs:
+                     # Ensure log is a dict and has required fields
+                     if isinstance(log, dict) and 'topics' in log and log['topics']:
+                          await self._log(conn, log.copy(), timestamp) # Pass conn
+                          if log['topics'][0].casefold() == TRANSFER_TOPIC:
+                               await self._token_transfer(conn, log, timestamp) # Pass conn
+                     else:
+                          logging.warning(f"Skipping malformed log in block {block_number}: {log}")
+
+            else:
+                # Log if it's an unhandled subscription ID or doesn't look like a block
+                logging.warning(f"Received unhandled message/subscription ID. CurrentSubID: {current_sub_id}, ExpectedBlockSubID: {self.block_sub_id}, RawMsg: {message[:500]}...") # Log truncated raw msg
+
+        except json.JSONDecodeError:
+            logging.error(f"Failed to decode JSON message: {message[:500]}...")
+        except Exception as e:
+            logging.exception(f"Error processing message: {message[:500]}...")

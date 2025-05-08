@@ -103,13 +103,12 @@ class ChainFeed(Chain, DataFeed):
         :type loop: asyncio.AbstractEventLoop
         """
         self._init_kafka(loop)
-        rest_connections = self._init_rest()
         auth = None
-        if 'node_secret' in self.node_conf:
+        if 'ETHEREUM_NODE_SECRET' in self.node_conf:
             auth = self.auth_ws
-        for connection in rest_connections:
-            self.connection_handlers.append(AsyncConnectionManager(
-                connection, None, self.process_message, None, None, self.retries, self.interval, self.timeout, self.delay))
+        if not hasattr(self, 'connection_handlers'):
+            self.connection_handlers = []
+
         for (endpoint, channels) in self.ws_rpc_endpoints.items():
             connection = WSRPC(
                 self.name, addr=endpoint, authentication=auth)

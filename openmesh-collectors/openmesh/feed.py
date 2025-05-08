@@ -9,6 +9,7 @@ from datetime import datetime, timezone
 
 from websockets import ConnectionClosed
 from websockets.exceptions import InvalidStatusCode
+from websockets.connection import State
 
 from openmesh.exceptions import TooManyRetries
 from yapic import json
@@ -35,15 +36,13 @@ class Feed(object):
 
 class AsyncFeed(Feed):
     """
-    Extension of Feed that uses asyncio and coroutines for most functionality
+    Async Feed base class
 
-    :param id: unique identifier for the feed
-    :type id: str
-    :param authentication: authentication function to be called before attempting to connect
-    :type authentication: Callable, optional
-    :param symbols: list of symbols to subscribe to
-    :type symbols: list, optional
+    Handles common functionality for all async feeds
     """
+
+    conn = None  # Stores the websocket connection context manager
+    _ws_connection = None # Stores the actual websocket connection object
 
     def __init__(self, id: str, addr: str = None, authentication: Awaitable = None, symbols: list = None, **kwargs):
         self.id = id
@@ -56,46 +55,67 @@ class AsyncFeed(Feed):
                          aiohttp.ClientSession] = None
         self.authentication = authentication
         self.last_received_time = None
+        self.connection_kwargs = kwargs
 
     def get_time_us(self):
         return int(datetime.now(timezone.utc).timestamp() * 1e6)
 
     @asynccontextmanager
     async def connect(self):
-        """
-        Asynchronous context manager for connecting to a feed. Allows for elegant opening and closing
-        """
-        await self._open()
-        try:
-            yield self
-        finally:
-            await self.close()
+        """Connects to the feed"""
+        if not self.conn:
+            await self._open()
+        yield self
+        # Removed await self.close() - Closing should be handled by the manager or externally
 
     async def _open(self):
-        """
-        Function to open a connection to a feed. Should be overridden by subclasses.
-        """
-        raise NotImplementedError
+        """Opens the websocket connection"""
+        # Close existing connection first if it's open
+        if self.is_open:
+            await self.close()
+
+        # Create the connection context manager
+        connect_context = websockets.connect(self.addr, **self.connection_kwargs)
+        # Enter the context manager and store the actual connection object
+        self._ws_connection = await connect_context.__aenter__()
+        # Store the context manager itself for later cleanup
+        self.conn = connect_context
 
     @property
     def is_open(self) -> bool:
         """
         Determines whether the connection is open.
-
-        :return: True if the connection is open, False otherwise
+        Checks the actual websocket connection object's state.
         """
-        return self.conn and not self.conn.closed
+        # Check the state of the websocket connection
+        return hasattr(self, '_ws_connection') and self._ws_connection and self._ws_connection.state == State.OPEN
 
     async def close(self):
-        """
-        Closes the connection to the feed.
-        """
-        if self.is_open:
-            conn = self.conn
-            self.conn = None
-            await conn.close()
-            logging.info('%s: closed connection after %d messages sent, %d messages received (%.2fs)', self.id, self.sent_messages, self.received_messages, (self.get_time_us() - self.start_time
-                                                                                                                                                             ) / 1e6)
+        """Closes the websocket connection"""
+        ws_closed = False
+        context_exited = False
+
+        # Close the actual websocket connection if it's open
+        if hasattr(self, '_ws_connection') and self._ws_connection and not self._ws_connection.closed:
+            try:
+                await self._ws_connection.close()
+                ws_closed = True
+            except Exception as e:
+                logging.warning(f"{self.id}: Exception closing websocket: {e}")
+
+        # Exit the context manager if it exists
+        if hasattr(self, 'conn') and self.conn:
+            try:
+                await self.conn.__aexit__(None, None, None)
+                context_exited = True
+            except Exception as e:
+                 logging.warning(f"{self.id}: Exception exiting websocket context: {e}")
+
+
+        # Clear the attributes
+        self._ws_connection = None
+        self.conn = None
+        logging.debug(f"{self.id}: Connection closed (ws_closed={ws_closed}, context_exited={context_exited})")
 
 
 class HTTPConnection(AsyncFeed):
@@ -206,9 +226,14 @@ class WSConnection(AsyncFeed):
             return
         if self.authentication:
             self.addr, self.options = await self.authentication(self.addr, self.options)
-        self.conn = await websockets.connect(self.addr, **self.options)
+
+        # Create context manager and store connection
+        connect_context = websockets.connect(self.addr, **self.options)
+        self._ws_connection = await connect_context.__aenter__()
+        self.conn = connect_context # Store context manager
+
         logging.info('%s: opened connection %r', self.id,
-                     self.conn.__class__.__name__)
+                     self._ws_connection.__class__.__name__)
         self.start_time = self.get_time_us()
         self.sent_messages = 0
         self.received_messages = 0
@@ -219,10 +244,11 @@ class WSConnection(AsyncFeed):
 
         :param data: data to send
         """
-        if not self.is_open:
+        if not self.is_open: # is_open now checks _ws_connection
             await self._open()
         self.sent_messages += 1
-        await self.conn.send(data)
+        # Use the actual connection object
+        await self._ws_connection.send(data)
 
     async def read_data(self):
         """
@@ -230,9 +256,10 @@ class WSConnection(AsyncFeed):
 
         :return: data received from the websocket connection
         """
-        if not self.is_open:
+        if not self.is_open: # is_open now checks _ws_connection
             await self._open()
-        async for data in self.conn:
+        # Use the actual connection object
+        async for data in self._ws_connection:
             self.received_messages += 1
             self.last_received_time = self.get_time_us()
             yield data
