@@ -108,7 +108,8 @@ services:
       - broker01
       - broker02
       - broker03
-    command: python runner.py -l debug connector --source ethereum
+      - schema-registry
+    command: /bin/sh -c "sleep 10 && python runner.py -l debug connector --source ethereum"
     networks:
       - pythia_net
 

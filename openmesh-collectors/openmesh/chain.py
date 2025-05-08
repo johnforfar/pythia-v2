@@ -8,16 +8,37 @@ from openmesh.feed import AsyncConnectionManager, HTTPRPC, WSRPC
 from openmesh.sink_connector.kafka_multiprocessed import AvroKafkaConnector
 
 import logging
+from openmesh.helpers.read_config import get_kafka_config
+from configparser import ConfigParser
 
 
 class Chain:
 
     def load_node_conf(self):
         secrets = get_secrets()
-        return {k.split('_', maxsplit=1)[1].lower(): v for k, v in secrets.items() if k.startswith(self.name.upper())}
+        return {
+            **secrets,
+        }
+
+
+class DataFeed:
+    """
+    Data Feed base class
+
+    Provides common functionality for all data feeds
+    """
+
+    def __init__(self, max_syms):
+        pass
 
 
 class ChainFeed(Chain, DataFeed):
+    """
+    Chain specific feed
+    """
+    chain_objects: dict = None
+    event_objects: list = None
+    name: str = None
 
     http_node_conn: Union[HTTPRPC, WSRPC] = NotImplemented
     # { <feed>: <feed object>}
@@ -29,21 +50,29 @@ class ChainFeed(Chain, DataFeed):
     # { <feed>: <Kafka Producer> }
     kafka_backends: dict = NotImplemented
 
-    def __init__(self):
+    def __init__(self, sink=None, retries=3, interval=60, timeout=120, delay=0, **kwargs):
         super().__init__(max_syms=None)
+        self.id = self.name
+        self.kafka_backends = {}
+        self.retries = retries
+        self.interval = interval
+        self.timeout = timeout
+        self.delay = delay
+
         self.node_conf = self.load_node_conf()
         self._init_http_node_conn(**self.node_conf)
-        self.kafka_backends = {}
 
         self.ws_rpc_endpoints = {
-            self.node_conf['node_ws_url']: [
+            self.node_conf['ETHEREUM_NODE_WS_URL']: [
                 self.name
             ]
         }
 
     def _init_http_node_conn(self, node_http_url=None, node_secret=None, **kwargs):
+        http_url = self.node_conf.get('ETHEREUM_NODE_HTTP_URL')
+        secret = self.node_conf.get('ETHEREUM_NODE_SECRET')
         self.http_node_conn = HTTPRPC(
-            self.name, addr=node_http_url, auth_secret=node_secret)
+            self.name, addr=http_url, auth_secret=secret)
 
     def _get_auth_header(self, username, password):
         assert ':' not in username
@@ -51,7 +80,8 @@ class ChainFeed(Chain, DataFeed):
         return ('Authorization', f'Basic {auth}')
 
     async def auth_ws(self, addr, options):
-        return addr, {'extra_headers': [self._get_auth_header(username='', password=self.node_conf['node_secret'])]}
+        secret = self.node_conf.get('ETHEREUM_NODE_SECRET')
+        return addr, {'extra_headers': [self._get_auth_header(username='', password=secret)]}
 
     def _init_kafka(self, loop: asyncio.AbstractEventLoop):
         logging.info('%s: Starting Kafka connectors', self.name)

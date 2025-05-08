@@ -393,21 +393,21 @@ class AsyncConnectionManager:
         retries = 0
         while self.running:
             try:
-                async with self.conn.connect() as conn:
+                async with self.conn.connect() as feed_instance:
                     self.auth and await self.auth()
-                    self.subscribe and await self.subscribe(conn, self.channels, conn.symbols)
+                    self.subscribe and await self.subscribe(feed_instance, self.channels, feed_instance.symbols)
                     delay = limited = 1
                     retries = 0
                     loop = asyncio.get_event_loop()
                     loop.create_task(self._monitor())
-                    logging.info('%s: connection established', conn.id)
-                    async for data in self.conn.read_data():
+                    logging.info('%s: connection established', feed_instance.id)
+                    async for data in feed_instance.read_data():
                         if not self.running:
                             logging.info(
-                                '%s: Terminating the connection callback as manager is not running', conn.id)
+                                '%s: Terminating the connection callback as manager is not running', feed_instance.id)
                             return
-                        logging.debug('%s: received %r', conn.id, data)
-                        await self.callback(data, conn, conn.last_received_time)
+                        logging.debug('%s: received %r', feed_instance.id, data)
+                        await self.callback(data, feed_instance, feed_instance.last_received_time)
             except InvalidStatusCode as e:
                 code = e.status_code
                 if code == 429:

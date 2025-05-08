@@ -140,7 +140,10 @@ class Ethereum(ChainFeed):
         return None
 
     async def subscribe(self, conn, feeds, symbols):
-        blocks_res = await conn.make_call('eth_subscribe', ['newHeads'])
+        # conn is the Ethereum instance itself (passed as feed_instance from AsyncConnectionManager)
+        # self is also the Ethereum instance.
+        # We should use self.make_call, not conn.make_call or self.conn.make_call
+        blocks_res = await self.make_call('eth_subscribe', ['newHeads'])
         logging.debug(
             "%s: Attempting to subscribe to newHeads with result %s", self.name, blocks_res)
         self.block_sub_id = blocks_res.get('result', None)
