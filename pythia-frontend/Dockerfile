@@ -22,13 +22,18 @@ WORKDIR /app
 ENV NODE_ENV=production
 # ENV NEXT_TELEMETRY_DISABLED 1 # Optional: to disable telemetry in the runner
 
+# Create a non-root user and group
+RUN addgroup --system --gid 1001 nodejs
+RUN adduser --system --uid 1001 nextjs
+
 # Copy the standalone output
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 
 # Copy public assets
-COPY --from=builder /app/public ./public
+COPY --from=builder --chown=nextjs:nodejs /app/public ./public
 # Removed COPY for .next/static as standalone should handle it
 
+# Switch to the non-root user
 USER nextjs
 
 EXPOSE 3111
