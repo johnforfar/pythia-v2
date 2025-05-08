@@ -15,20 +15,20 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html suppressHydrationWarning lang="en">
+    <html suppressHydrationWarning lang='en'>
       {/*
         <head /> will contain the components returned by the nearest parent
         head.js. Find out more at https://beta.nextjs.org/docs/api-reference/file-conventions/head
       */}
       <head />
 
-      <body className="max-w-screen w-full bg-white">
+      <body className='max-w-screen w-full bg-white'>
         <Providers>
-          <div className="flex">
-            <div className="z-10 h-[calc(100vh)] flex-shrink-0 md:z-50">
+          <div className='flex'>
+            <div className='z-10 h-[calc(100vh)] flex-shrink-0 md:z-50'>
               <Sidebar onValueChange={console.log('')} />
             </div>
-            <div className="z-50 mx-auto flex-grow md:z-10">
+            <div className='z-50 mx-auto flex-grow md:z-10'>
               <Header />
               {children}
             </div>

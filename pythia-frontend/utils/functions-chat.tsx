@@ -1,21 +1,16 @@
 'use client'
 import { formatDistanceToNow } from 'date-fns'
 import DOMPurify from 'dompurify'
-import ReactHtmlParser, { convertNodeToElement } from 'react-html-parser'
+import parse, {
+  domToReact,
+  attributesToProps,
+  Element,
+} from 'html-react-parser'
+import React from 'react'
 
 export function formatDeadline(timestamp) {
-  console.log(timestamp)
-  if (timestamp) {
-    const date = new Date(timestamp)
-    let difference = formatDistanceToNow(date)
-
-    difference = `${difference.charAt(0).toUpperCase()}${difference.slice(
-      1,
-    )} ago`
-    return difference
-  } else {
-    return ''
-  }
+  const date = new Date(timestamp * 1000)
+  return formatDistanceToNow(date, { addSuffix: true })
 }
 
 export function formatDate(createdAt) {
@@ -89,63 +84,73 @@ export function formatDateWithoutTime(createdAt) {
   return formattedDate.replace(dayString, ordinalDay)
 }
 
-export function transform(node, index) {
-  if (node.type === 'tag') {
-    switch (node.name) {
-      case 'h1':
-        node.attribs.style = 'font-size: 2rem; font-weight: bold;'
-        break
-      case 'h2':
-        node.attribs.style = 'font-size: 1.5rem; font-weight: bold;'
-        break
-      case 'ul':
-        node.attribs.style = 'list-style: disc; margin-left: 40px;' // Ajuste o valor conforme necessário
-        break
-      case 'ol':
-        node.attribs.style = 'list-style: decimal; margin-left: 40px;' // Ajuste o valor conforme necessário
-        break
-      case 'strong':
-      case 'b':
-        node.attribs.style = 'font-weight: bold;'
-        break
-      case 'em':
-      case 'i':
-        node.attribs.style = 'font-style: italic;'
-        break
-      case 'li':
-        if (node.attribs.class && node.attribs.class.includes('ql-indent-1')) {
-          node.attribs.style = 'margin-left: 30px;' // Adicione mais estilos se a classe ql-indent-1 tiver especificidades
+export function processHtml(htmlString: string) {
+  // Remove <br> at the end
+  const htmlWithoutTrailingBr = htmlString.replace(/<br>\s*$/i, '')
+
+  // Replace <p><br></p> with <div></div> - Adjusted to handle potential whitespace
+  let processedHtml = htmlWithoutTrailingBr.replace(
+    /<p>\s*(<br\s*\/?>)?\s*<\/p>/gi,
+    '<div></div>'
+  )
+
+  // Sanitize the HTML
+  const cleanHtml = DOMPurify.sanitize(processedHtml, {
+    USE_PROFILES: { html: true },
+  })
+
+  const options = {
+    replace: (domNode) => {
+      if (domNode instanceof Element && domNode.attribs) {
+        if (domNode.name === 'pre') {
+          // Add class for code block styling
+          const props = attributesToProps(domNode.attribs)
+          return (
+            <pre {...props} className='code-block'>
+              {domToReact(domNode.children as any, options)}
+            </pre>
+          )
         }
-        break
-      // Adicione mais casos conforme necessário
-    }
+
+        if (domNode.name === 'p') {
+          // Add class for paragraph styling
+          const props = attributesToProps(domNode.attribs)
+          return (
+            <p {...props} className='paragraph'>
+              {domToReact(domNode.children as any, options)}
+            </p>
+          )
+        }
+
+        // Handle lists if necessary (example)
+        // if (domNode.name === 'ul') {
+        //   const props = attributesToProps(domNode.attribs)
+        //   return <ul {...props} style={{ listStyle: 'disc', marginLeft: '40px' }}>{domToReact(domNode.children, options)}</ul>
+        // }
+        // if (domNode.name === 'ol') {
+        //   const props = attributesToProps(domNode.attribs)
+        //   return <ol {...props} style={{ listStyle: 'decimal', marginLeft: '40px' }}>{domToReact(domNode.children, options)}</ol>
+        // }
+      }
+    },
   }
-  return convertNodeToElement(node, index, transform)
+
+  // Parse the sanitized HTML with options
+  const reactElement = parse(cleanHtml, options)
+
+  return reactElement
 }
 
 export function removeTrailingBrTags(htmlContent) {
-  // Remove qualquer sequência de tags vazias com <br> ou cursor no final
-  // A expressão regular agora considera a presença do cursor
-  // eslint-disable-next-line prettier/prettier, no-irregular-whitespace
-  return htmlContent.replace(/(<[^>]+>)*(\s*<br>\s*|<span class="ql-cursor">﻿<\/span>\s*)+(<\/[^>]+>)*\s*$/gi, '');
+  if (typeof htmlContent !== 'string') {
+    return htmlContent
+  }
+  return htmlContent.replace(/^(.*?)<br\s*\/?>(<\/p>)?\s*$/i, '$1$2')
 }
 
 export function getSanitizeText(content: string) {
-  // Primeiro, sanitizar o conteúdo HTML
-  const cleanHtml = DOMPurify.sanitize(content)
-  console.log('clean gtrml')
-  console.log(cleanHtml)
-
-  // Em seguida, remover os <br> inúteis no final
-  const htmlWithoutTrailingBr = removeTrailingBrTags(cleanHtml)
-
-  // Finalmente, transformar o HTML e retornar
-  const htmlTransformado = ReactHtmlParser(htmlWithoutTrailingBr, {
-    transform,
-  })
-  console.log(htmlTransformado)
-
-  return htmlTransformado
+  // All sanitization and transformation is now handled by processHtml
+  return processHtml(content)
 }
 
 export function isDifferentDay(date1, date2) {

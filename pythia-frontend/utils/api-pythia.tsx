@@ -75,7 +75,7 @@ export async function inputNonUserChatMessage(data: any) {
 
 export async function inputUserChatMessage(
   data: any,
-  userSessionToken: string,
+  userSessionToken: string
 ) {
   const config = {
     method: 'post' as 'post',

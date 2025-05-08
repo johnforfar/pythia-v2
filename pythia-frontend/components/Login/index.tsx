@@ -10,7 +10,6 @@ import { yupResolver } from '@hookform/resolvers/yup'
 import { Eye, EyeSlash } from 'phosphor-react'
 import * as Yup from 'yup'
 import axios from 'axios'
-import Checkbox from '@material-ui/core/Checkbox'
 import { toast } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 import dynamic from 'next/dynamic'
@@ -64,7 +63,7 @@ const Login = () => {
 
   async function loginUser(data: any) {
     const config = {
-      method: 'post' as 'post',
+      method: 'post' as const,
       url: `${process.env.NEXT_PUBLIC_API_BACKEND_BASE_URL}/openmesh-experts/functions/loginOpenRD`,
       headers: {
         'x-parse-application-id': `${process.env.NEXT_PUBLIC_API_BACKEND_KEY}`,
@@ -95,14 +94,14 @@ const Login = () => {
       setUser(res)
       setIsLoading(false)
       push(
-        `${process.env.NEXT_PUBLIC_ENVIRONMENT === 'PROD' ? `/pythia/` : `/`}`,
+        `${process.env.NEXT_PUBLIC_ENVIRONMENT === 'PROD' ? `/pythia/` : `/`}`
       )
     } catch (err) {
       if (err.response.data.message === 'Unconfirmed Email') {
         toast.error('Unconfirmed email')
       } else if (err.response.data.message === 'User disabled') {
         toast.error(
-          'Please allow 24 to 48 hours for the community to approve your application',
+          'Please allow 24 to 48 hours for the community to approve your application'
         )
       } else {
         toast.error('Incorrect credentials')
@@ -115,57 +114,57 @@ const Login = () => {
 
   return (
     <>
-      <section className="mt-12 mb-[0px] px-[20px] pt-[50px]  text-[11px] font-medium !leading-[17px] text-[#000000] lg:mb-24 lg:px-[100px]  lg:text-[14px]">
-        <div className="mx-auto flex w-fit justify-center rounded-[8px] p-[10px] md:border md:border-[#cacaca] md:p-[50px] lg:p-[100px]">
-          <form onSubmit={handleSubmit(onSubmit)} className="">
-            <div className="">
+      <section className='mb-[0px] mt-12 px-[20px] pt-[50px]  text-[11px] font-medium !leading-[17px] text-[#000000] lg:mb-24 lg:px-[100px]  lg:text-[14px]'>
+        <div className='mx-auto flex w-fit justify-center rounded-[8px] p-[10px] md:border md:border-[#cacaca] md:p-[50px] lg:p-[100px]'>
+          <form onSubmit={handleSubmit(onSubmit)} className=''>
+            <div className=''>
               <div>
-                <div id="emailId" className="">
-                  <div className="">
-                    <span className="flex flex-row">
+                <div id='emailId' className=''>
+                  <div className=''>
+                    <span className='flex flex-row'>
                       Email
-                      <p className="ml-[8px] text-[10px] font-normal text-[#ff0000] ">
+                      <p className='ml-[8px] text-[10px] font-normal text-[#ff0000] '>
                         {errors.email?.message}
                       </p>
                     </span>
                     <input
                       disabled={isLoading}
-                      className="mt-[10px] h-[50px] w-[180px] rounded-[10px] border border-[#D4D4D4] bg-white px-[12px] text-[17px] font-normal outline-0 md:w-[280px] lg:w-[500px]"
-                      type="text"
+                      className='mt-[10px] h-[50px] w-[180px] rounded-[10px] border border-[#D4D4D4] bg-white px-[12px] text-[17px] font-normal outline-0 md:w-[280px] lg:w-[500px]'
+                      type='text'
                       maxLength={500}
-                      placeholder=""
+                      placeholder=''
                       {...register('email')}
                     />
                   </div>
-                  <div className="mt-[20px]">
-                    <span className="flex flex-row">
+                  <div className='mt-[20px]'>
+                    <span className='flex flex-row'>
                       Password
-                      <p className="ml-[8px] text-[10px] font-normal text-[#ff0000] ">
+                      <p className='ml-[8px] text-[10px] font-normal text-[#ff0000] '>
                         {errors.password?.message}
                       </p>
                     </span>
-                    <div className="flex">
+                    <div className='flex'>
                       <input
                         disabled={isLoading}
-                        className="mt-[10px] mr-[20px] h-[50px] w-[180px] rounded-[10px] border border-[#D4D4D4] bg-white px-[12px] text-[17px] font-normal outline-0 md:w-[280px] lg:w-[500px]"
+                        className='mr-[20px] mt-[10px] h-[50px] w-[180px] rounded-[10px] border border-[#D4D4D4] bg-white px-[12px] text-[17px] font-normal outline-0 md:w-[280px] lg:w-[500px]'
                         type={passwordVisibility ? 'password' : 'text'}
                         maxLength={500}
-                        placeholder=""
+                        placeholder=''
                         {...register('password')}
                       />
                       {passwordVisibility ? (
                         <div
                           onClick={() => setPasswordVisibility(false)}
-                          className="flex cursor-pointer items-center text-center"
+                          className='flex cursor-pointer items-center text-center'
                         >
-                          <EyeSlash className="cursor-pointer" />
+                          <EyeSlash className='cursor-pointer' />
                         </div>
                       ) : (
                         <div
                           onClick={() => setPasswordVisibility(true)}
-                          className="flex cursor-pointer items-center text-center"
+                          className='flex cursor-pointer items-center text-center'
                         >
-                          <Eye className="cursor-pointer" />
+                          <Eye className='cursor-pointer' />
                         </div>
                       )}
                     </div>
@@ -174,55 +173,55 @@ const Login = () => {
               </div>
             </div>
             {isLoading ? (
-              <div className="mt-[30px] flex">
+              <div className='mt-[30px] flex'>
                 <button
                   disabled={true}
-                  className=" h-fit cursor-pointer items-center rounded-[5px] border  border-[#000] bg-transparent py-[8px] px-[25px] text-[13px] font-bold !leading-[19px] text-[#575757] hover:bg-[#ececec] lg:text-[16px]"
+                  className=' h-fit cursor-pointer items-center rounded-[5px] border  border-[#000] bg-transparent px-[25px] py-[8px] text-[13px] font-bold !leading-[19px] text-[#575757] hover:bg-[#ececec] lg:text-[16px]'
                   onClick={handleSubmit(onSubmit)}
                 >
-                  <span className="">Sign in</span>
+                  <span className=''>Sign in</span>
                 </button>
                 <svg
-                  className="animate-spin"
-                  height="40px"
-                  id="Icons"
-                  version="1.1"
-                  viewBox="0 0 80 80"
-                  width="30px"
-                  xmlns="http://www.w3.org/2000/svg"
+                  className='animate-spin'
+                  height='40px'
+                  id='Icons'
+                  version='1.1'
+                  viewBox='0 0 80 80'
+                  width='30px'
+                  xmlns='http://www.w3.org/2000/svg'
                 >
-                  <path d="M58.385,34.343V21.615L53.77,26.23C50.244,22.694,45.377,20.5,40,20.5c-10.752,0-19.5,8.748-19.5,19.5S29.248,59.5,40,59.5  c7.205,0,13.496-3.939,16.871-9.767l-4.326-2.496C50.035,51.571,45.358,54.5,40,54.5c-7.995,0-14.5-6.505-14.5-14.5  S32.005,25.5,40,25.5c3.998,0,7.617,1.632,10.239,4.261l-4.583,4.583H58.385z" />
+                  <path d='M58.385,34.343V21.615L53.77,26.23C50.244,22.694,45.377,20.5,40,20.5c-10.752,0-19.5,8.748-19.5,19.5S29.248,59.5,40,59.5  c7.205,0,13.496-3.939,16.871-9.767l-4.326-2.496C50.035,51.571,45.358,54.5,40,54.5c-7.995,0-14.5-6.505-14.5-14.5  S32.005,25.5,40,25.5c3.998,0,7.617,1.632,10.239,4.261l-4.583,4.583H58.385z' />
                 </svg>
               </div>
             ) : (
-              <div className="mt-[30px]">
+              <div className='mt-[30px]'>
                 <button
-                  type="submit"
-                  className=" cursor-pointer items-center rounded-[5px] border  border-[#000] bg-transparent py-[8px] px-[25px] text-[13px] font-bold !leading-[19px] text-[#575757] hover:bg-[#ececec] lg:text-[16px]"
+                  type='submit'
+                  className=' cursor-pointer items-center rounded-[5px] border  border-[#000] bg-transparent px-[25px] py-[8px] text-[13px] font-bold !leading-[19px] text-[#575757] hover:bg-[#ececec] lg:text-[16px]'
                   onClick={handleSubmit(onSubmit)}
                 >
-                  <span className="">Sign in</span>
+                  <span className=''>Sign in</span>
                 </button>
               </div>
             )}
-            <div className="mt-[30px] md:mt-[40px] lg:mt-[50px]">
+            <div className='mt-[30px] md:mt-[40px] lg:mt-[50px]'>
               Does not have an account yet?{' '}
               <a
-                target="_blank"
-                rel="noreferrer"
+                target='_blank'
+                rel='noreferrer'
                 href={`https://www.openmesh.network/oec/register`}
-                className="border-b-1 cursor-pointer border-b text-[#3253FE]"
+                className='border-b-1 cursor-pointer border-b text-[#3253FE]'
               >
                 Create account
               </a>
             </div>
-            <div className="mt-[10px] lg:mt-[20px]">
+            <div className='mt-[10px] lg:mt-[20px]'>
               Forgot your password?{' '}
               <a
                 href={`https://www.openmesh.network/oec/recover-password`}
-                target="_blank"
-                className="border-b-1 cursor-pointer border-b text-[#3253FE]"
-                rel="noreferrer"
+                target='_blank'
+                className='border-b-1 cursor-pointer border-b text-[#3253FE]'
+                rel='noreferrer'
               >
                 Recover password
               </a>

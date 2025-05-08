@@ -128,10 +128,10 @@ export default function AccountContextProvider({
   const [connections, setConnections] = useState<boolean>(false)
   const [signup, setSignup] = useState<boolean>(false)
   const [tagXnode, setTagXnode] = useState<string>(
-    'Decentralized data infrastructure',
+    'Decentralized data infrastructure'
   )
   const [projectDescription, setProjectDescription] = useState<string>(
-    'Project description',
+    'Project description'
   )
   return (
     <AccountContext.Provider

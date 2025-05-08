@@ -68,7 +68,7 @@ const Sidebar = ({ onValueChange }) => {
         process.env.NEXT_PUBLIC_ENVIRONMENT === 'PROD'
           ? `/pythia/chat/${id}`
           : `/chat/${id}`
-      }`,
+      }`
     )
   }
 
@@ -133,7 +133,7 @@ const Sidebar = ({ onValueChange }) => {
     try {
       const res = await deleteUserChat(data, userSessionToken)
       push(
-        `${process.env.NEXT_PUBLIC_ENVIRONMENT === 'PROD' ? `/pythia` : `/`}`,
+        `${process.env.NEXT_PUBLIC_ENVIRONMENT === 'PROD' ? `/pythia` : `/`}`
       )
       window.location.reload()
     } catch (err) {
@@ -285,8 +285,8 @@ const Sidebar = ({ onValueChange }) => {
             sidebarOpen ? 'w-[300px] md:w-[280px]' : 'md:flex md:w-[150px]'
           }`}
         >
-          <div className="mb-[14.5px] mt-[24.5px] ml-[16px]  flex flex-row items-center  justify-between !bg-white lg:mt-[49px] lg:mb-[29px] lg:ml-[32px]">
-            <div className="absolute top-[10px] flex w-[10.5px] cursor-pointer flex-col items-center lg:top-[38px] lg:w-[21.5px]">
+          <div className='mb-[14.5px] ml-[16px] mt-[24.5px]  flex flex-row items-center  justify-between !bg-white lg:mb-[29px] lg:ml-[32px] lg:mt-[49px]'>
+            <div className='absolute top-[10px] flex w-[10.5px] cursor-pointer flex-col items-center lg:top-[38px] lg:w-[21.5px]'>
               <img
                 onClick={() => setSidebarOpen(false)}
                 src={`${
@@ -294,8 +294,8 @@ const Sidebar = ({ onValueChange }) => {
                     ? process.env.NEXT_PUBLIC_BASE_PATH
                     : ''
                 }/images/lateralNavBar/nav.svg`}
-                className="hidden md:block"
-                alt="image"
+                className='hidden md:block'
+                alt='image'
               />
               <a
                 href={`${
@@ -303,7 +303,7 @@ const Sidebar = ({ onValueChange }) => {
                     ? `/pythia/`
                     : '/'
                 }`}
-                className="absolute -top-[8px] left-[0px] flex w-[100px] cursor-pointer flex-col items-center lg:-top-[22px] lg:left-[50px] lg:w-[100px] "
+                className='absolute -top-[8px] left-[0px] flex w-[100px] cursor-pointer flex-col items-center lg:-top-[22px] lg:left-[50px] lg:w-[100px] '
               >
                 <img
                   src={`${
@@ -311,22 +311,22 @@ const Sidebar = ({ onValueChange }) => {
                       ? process.env.NEXT_PUBLIC_BASE_PATH
                       : ''
                   }/images/logo/pythia.svg`}
-                  alt="image"
+                  alt='image'
                   className={`w-[100px] md:w-[40px] lg:w-[300px] ${
                     sidebarOpen ? '' : 'hidden'
                   }`}
                 />
               </a>
             </div>
-            <div className="absolute top-[60px] flex h-[25px] w-[10.5px] items-center gap-x-[20px] lg:top-[92px] lg:w-[21.5px]">
+            <div className='absolute top-[60px] flex h-[25px] w-[10.5px] items-center gap-x-[20px] lg:top-[92px] lg:w-[21.5px]'>
               <img
                 src={`${
                   process.env.NEXT_PUBLIC_ENVIRONMENT === 'PROD'
                     ? process.env.NEXT_PUBLIC_BASE_PATH
                     : ''
                 }/images/logo/search.svg`}
-                className="hidden md:block"
-                alt="image"
+                className='hidden md:block'
+                alt='image'
               />
               {sidebarOpen && (
                 <input
@@ -334,20 +334,20 @@ const Sidebar = ({ onValueChange }) => {
                   onChange={(e) => {
                     setInputValue(e.target.value)
                   }}
-                  placeholder="Search chat"
-                  className="h-[25px] w-[200px] rounded-[5px] border border-[#9e9e9e50] bg-transparent px-2 text-[13px] text-[#000] placeholder-body-color outline-none focus:border-primary md:w-[160px]"
+                  placeholder='Search chat'
+                  className='h-[25px] w-[200px] rounded-[5px] border border-[#9e9e9e50] bg-transparent px-2 text-[13px] text-[#000] placeholder-body-color outline-none focus:border-primary md:w-[160px]'
                 />
               )}
             </div>
           </div>
-          <div className="!z-30 mt-[100px] grid gap-y-[10px] px-[22px] text-[13px] text-[#000]">
+          <div className='!z-30 mt-[100px] grid gap-y-[10px] px-[22px] text-[13px] text-[#000]'>
             {arrayDateFilters &&
               arrayDateFilters.map((filter, index) => {
                 if (hasChatsForFilter(filter)) {
                   return (
-                    <div key={index} className="">
-                      <div className="text-[#000000a8]">{filter}</div>
-                      <div className="mt-[5px] mb-[5px] grid gap-y-[5px]">
+                    <div key={index} className=''>
+                      <div className='text-[#000000a8]'>{filter}</div>
+                      <div className='mb-[5px] mt-[5px] grid gap-y-[5px]'>
                         {pythiaChats &&
                           pythiaChats.map((chat, index) => {
                             if (validateDateChat(filter, chat)) {
@@ -414,7 +414,7 @@ const Sidebar = ({ onValueChange }) => {
                                         e.stopPropagation()
                                         setIsChatMenuOpen(chat)
                                       }}
-                                      className="absolute top-0 right-0 flex h-full cursor-pointer bg-[#e2e2e25d] px-[10px] text-[10px] backdrop-blur-sm"
+                                      className='absolute right-0 top-0 flex h-full cursor-pointer bg-[#e2e2e25d] px-[10px] text-[10px] backdrop-blur-sm'
                                     >
                                       <img
                                         src={`${
@@ -423,15 +423,15 @@ const Sidebar = ({ onValueChange }) => {
                                             ? process.env.NEXT_PUBLIC_BASE_PATH
                                             : ''
                                         }/images/pythia/dots.svg`}
-                                        alt="image"
-                                        className="my-auto w-[16px] cursor-pointer"
+                                        alt='image'
+                                        className='my-auto w-[16px] cursor-pointer'
                                       />
                                     </div>
                                   )}
                                   {isChatMenuOpen?.id === chat.id && (
                                     <div
                                       ref={menuRef}
-                                      className="absolute top-0 right-0 !z-[999999] translate-x-[105%]  rounded-md border-[0.5px] bg-[#F9F9F9] py-[5px]"
+                                      className='absolute right-0 top-0 !z-[999999] translate-x-[105%]  rounded-md border-[0.5px] bg-[#F9F9F9] py-[5px]'
                                     >
                                       <div
                                         onClick={() => {
@@ -439,7 +439,7 @@ const Sidebar = ({ onValueChange }) => {
                                           setPythiaChatName(chat.name)
                                           setIsChatMenuOpen(null)
                                         }}
-                                        className="flex cursor-pointer gap-x-[7px] rounded-sm px-[10px] py-[5px] hover:bg-[#e2e2e25d]"
+                                        className='flex cursor-pointer gap-x-[7px] rounded-sm px-[10px] py-[5px] hover:bg-[#e2e2e25d]'
                                       >
                                         <img
                                           src={`${
@@ -450,10 +450,10 @@ const Sidebar = ({ onValueChange }) => {
                                                   .NEXT_PUBLIC_BASE_PATH
                                               : ''
                                           }/images/pythia/pencil.svg`}
-                                          alt="image"
-                                          className="my-auto w-[18px]"
+                                          alt='image'
+                                          className='my-auto w-[18px]'
                                         />
-                                        <div className="text-[#000000b7]">
+                                        <div className='text-[#000000b7]'>
                                           Rename
                                         </div>
                                       </div>
@@ -461,7 +461,7 @@ const Sidebar = ({ onValueChange }) => {
                                         onClick={() => {
                                           handleDeletePythiaChat(chat)
                                         }}
-                                        className="flex  cursor-pointer gap-x-[14px] rounded-sm px-[10px] py-[5px] hover:bg-[#e2e2e25d]"
+                                        className='flex  cursor-pointer gap-x-[14px] rounded-sm px-[10px] py-[5px] hover:bg-[#e2e2e25d]'
                                       >
                                         <img
                                           src={`${
@@ -472,10 +472,10 @@ const Sidebar = ({ onValueChange }) => {
                                                   .NEXT_PUBLIC_BASE_PATH
                                               : ''
                                           }/images/pythia/garbage.svg`}
-                                          alt="image"
-                                          className="my-auto w-[12px]"
+                                          alt='image'
+                                          className='my-auto w-[12px]'
                                         />
-                                        <div className="text-[#000000b7]">
+                                        <div className='text-[#000000b7]'>
                                           Delete
                                         </div>
                                       </div>

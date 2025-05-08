@@ -111,23 +111,23 @@ const Profile = () => {
 
   const FileList: FC<FileListProps> = ({ files, onRemove }) => {
     return (
-      <ul className="mt-4 max-h-[190px] max-w-[300px] overflow-y-auto text-[#000000]">
+      <ul className='mt-4 max-h-[190px] max-w-[300px] overflow-y-auto text-[#000000]'>
         {files.map((file, index) => (
-          <li key={`selected-${index}`} className="mb-2 mr-2 ml-4 flex">
+          <li key={`selected-${index}`} className='mb-2 ml-4 mr-2 flex'>
             <img
               src={`${
                 process.env.NEXT_PUBLIC_ENVIRONMENT === 'PROD'
                   ? process.env.NEXT_PUBLIC_BASE_PATH
                   : ''
               }${imagePreview}`}
-              alt="Preview"
+              alt='Preview'
               className={`h-[150px] w-[150px] cursor-pointer rounded-[100%] `}
             />
             <button
-              type="button"
+              type='button'
               onClick={() => onRemove(index)}
               disabled={isLoading}
-              className="ml-2 flex h-fit items-start rounded px-1 py-0.5 text-sm  font-extrabold text-[#ff0000]  hover:text-[#6b0101] lg:text-[16px]"
+              className='ml-2 flex h-fit items-start rounded px-1 py-0.5 text-sm  font-extrabold text-[#ff0000]  hover:text-[#6b0101] lg:text-[16px]'
             >
               X
             </button>
@@ -232,7 +232,7 @@ const Profile = () => {
   async function updateUser(data: any) {
     const { userSessionToken } = parseCookies()
     const config = {
-      method: 'post' as 'post',
+      method: 'post' as const,
       url: `${process.env.NEXT_PUBLIC_API_BACKEND_BASE_URL}/openmesh-experts/functions/updateUser`,
       headers: {
         'x-parse-application-id': `${process.env.NEXT_PUBLIC_API_BACKEND_KEY}`,
@@ -288,7 +288,7 @@ const Profile = () => {
       push(
         `${
           process.env.NEXT_PUBLIC_ENVIRONMENT === 'PROD' ? `/xnode/oec` : `/oec`
-        }`,
+        }`
       )
     } catch (err) {
       console.log(err)
@@ -346,7 +346,7 @@ const Profile = () => {
           urlToFile(
             `https://cloudflare-ipfs.com/ipfs/${user.profilePictureHash}`,
             'profilePic.jpg',
-            mimeType,
+            mimeType
           ).then((file) => {
             handlePreFileChange({ target: { files: [file] } } as any)
             setIsPageLoading(false)
@@ -357,7 +357,7 @@ const Profile = () => {
       push(
         `${
           process.env.NEXT_PUBLIC_ENVIRONMENT === 'PROD' ? `/xnode/oec` : `/oec`
-        }`,
+        }`
       )
     }
 
@@ -366,12 +366,12 @@ const Profile = () => {
 
   if (isPageLoading) {
     return (
-      <section className="py-16 px-32 text-black md:py-20 lg:pt-40">
-        <div className="container flex h-60 animate-pulse px-0 pb-12">
-          <div className="mr-10 w-3/4 animate-pulse bg-[#dfdfdf]"></div>
-          <div className="w-1/4 animate-pulse bg-[#dfdfdf]"></div>
+      <section className='px-32 py-16 text-black md:py-20 lg:pt-40'>
+        <div className='container flex h-60 animate-pulse px-0 pb-12'>
+          <div className='mr-10 w-3/4 animate-pulse bg-[#dfdfdf]'></div>
+          <div className='w-1/4 animate-pulse bg-[#dfdfdf]'></div>
         </div>
-        <div className="container h-96 animate-pulse bg-[#dfdfdf] pb-12"></div>
+        <div className='container h-96 animate-pulse bg-[#dfdfdf] pb-12'></div>
       </section>
     )
   }
@@ -379,86 +379,86 @@ const Profile = () => {
   if (user && !isPageLoading) {
     return (
       <>
-        <section className="border-b border-[#CFCFCF] px-32 pb-[33px] pt-[50px]">
-          <div className="container">
-            <div className="-mx-4 flex flex-wrap items-start">
-              <div className="w-full px-4 lg:w-2/3">
-                <div className="mb-1">
-                  <h3 className="text-[15px] font-bold !leading-[150%] text-[#000000] lg:text-[24px]">
+        <section className='border-b border-[#CFCFCF] px-32 pb-[33px] pt-[50px]'>
+          <div className='container'>
+            <div className='-mx-4 flex flex-wrap items-start'>
+              <div className='w-full px-4 lg:w-2/3'>
+                <div className='mb-1'>
+                  <h3 className='text-[15px] font-bold !leading-[150%] text-[#000000] lg:text-[24px]'>
                     Update account
                   </h3>
                 </div>
-                <div className="mt-[20px] text-[#000]">{user.email}</div>
+                <div className='mt-[20px] text-[#000]'>{user.email}</div>
               </div>
             </div>
           </div>
         </section>
-        <section className="mt-12 mb-[0px] px-[20px] pt-[15px] text-[11px]  font-medium !leading-[17px] text-[#000000] lg:mb-24 lg:px-[100px] lg:pt-[30px]  lg:text-[14px]">
-          <div className="flex gap-x-[70px] lg:gap-x-[200px] lg:px-[150px]">
-            <form onSubmit={handleSubmit(onSubmit)} className="">
-              <div className="">
+        <section className='mb-[0px] mt-12 px-[20px] pt-[15px] text-[11px]  font-medium !leading-[17px] text-[#000000] lg:mb-24 lg:px-[100px] lg:pt-[30px]  lg:text-[14px]'>
+          <div className='flex gap-x-[70px] lg:gap-x-[200px] lg:px-[150px]'>
+            <form onSubmit={handleSubmit(onSubmit)} className=''>
+              <div className=''>
                 <div>
-                  <div id="emailId" className="">
-                    <div className="mt-[20px]">
-                      <span className="flex flex-row">
+                  <div id='emailId' className=''>
+                    <div className='mt-[20px]'>
+                      <span className='flex flex-row'>
                         First name
-                        <p className="ml-[8px] text-[10px] font-normal text-[#ff0000] ">
+                        <p className='ml-[8px] text-[10px] font-normal text-[#ff0000] '>
                           {errors.firstName?.message}
                         </p>
                       </span>
                       <input
                         disabled={isLoading}
-                        className="mt-[10px] h-[45px] w-[280px] rounded-[10px] border border-[#D4D4D4] bg-white px-[12px] text-[17px] font-normal outline-0 lg:w-[500px]"
-                        type="text"
+                        className='mt-[10px] h-[45px] w-[280px] rounded-[10px] border border-[#D4D4D4] bg-white px-[12px] text-[17px] font-normal outline-0 lg:w-[500px]'
+                        type='text'
                         maxLength={100}
                         placeholder={user.firstName}
                         {...register('firstName')}
                       />
                     </div>
-                    <div className="mt-[20px]">
-                      <span className="flex flex-row">
+                    <div className='mt-[20px]'>
+                      <span className='flex flex-row'>
                         Last name
-                        <p className="ml-[8px] text-[10px] font-normal text-[#ff0000] ">
+                        <p className='ml-[8px] text-[10px] font-normal text-[#ff0000] '>
                           {errors.lastName?.message}
                         </p>
                       </span>
                       <input
                         disabled={isLoading}
-                        className="mt-[10px] h-[45px] w-[280px] rounded-[10px] border border-[#D4D4D4] bg-white px-[12px] text-[17px] font-normal outline-0 lg:w-[500px]"
-                        type="text"
+                        className='mt-[10px] h-[45px] w-[280px] rounded-[10px] border border-[#D4D4D4] bg-white px-[12px] text-[17px] font-normal outline-0 lg:w-[500px]'
+                        type='text'
                         maxLength={100}
                         placeholder={user.lastName}
                         {...register('lastName')}
                       />
                     </div>
                     {user.isCompany && (
-                      <div className="mt-[20px]">
-                        <span className="flex flex-row">
+                      <div className='mt-[20px]'>
+                        <span className='flex flex-row'>
                           Company name
-                          <p className="ml-[8px] text-[10px] font-normal text-[#ff0000] ">
+                          <p className='ml-[8px] text-[10px] font-normal text-[#ff0000] '>
                             {errors.companyName?.message}
                           </p>
                         </span>
                         <input
                           disabled={isLoading}
-                          className="mt-[10px] h-[45px] w-[280px] rounded-[10px] border border-[#D4D4D4] bg-white px-[12px] text-[17px] font-normal outline-0 lg:w-[500px]"
-                          type="text"
+                          className='mt-[10px] h-[45px] w-[280px] rounded-[10px] border border-[#D4D4D4] bg-white px-[12px] text-[17px] font-normal outline-0 lg:w-[500px]'
+                          type='text'
                           maxLength={100}
-                          placeholder=""
+                          placeholder=''
                           {...register('companyName')}
                         />
                       </div>
                     )}
                     {user.isCompany && (
-                      <div className="mt-[20px]">
-                        <span className="flex flex-row">
+                      <div className='mt-[20px]'>
+                        <span className='flex flex-row'>
                           Founding year
-                          <p className="ml-[8px] text-[10px] font-normal text-[#ff0000]">
+                          <p className='ml-[8px] text-[10px] font-normal text-[#ff0000]'>
                             {errors.foundingYear?.message}
                           </p>
                         </span>
                         <Controller
-                          name="foundingYear"
+                          name='foundingYear'
                           control={control}
                           defaultValue={null}
                           rules={{ required: 'Founding year is required' }}
@@ -474,8 +474,8 @@ const Profile = () => {
                               renderInput={(params) => (
                                 <TextField
                                   {...params}
-                                  variant="outlined"
-                                  placeholder="Select a year"
+                                  variant='outlined'
+                                  placeholder='Select a year'
                                   error={Boolean(errors.foundingYear)}
                                   helperText={errors.foundingYear?.message}
                                   sx={{
@@ -495,106 +495,106 @@ const Profile = () => {
                         />
                       </div>
                     )}
-                    <div id="tagsId" className="mt-[20px]">
-                      <span className="flex flex-row">
+                    <div id='tagsId' className='mt-[20px]'>
+                      <span className='flex flex-row'>
                         Location
-                        <p className="ml-[8px] text-[10px] font-normal text-[#ff0000] ">
+                        <p className='ml-[8px] text-[10px] font-normal text-[#ff0000] '>
                           {errors.location?.message}
                         </p>
                       </span>
                       <input
                         disabled={isLoading}
-                        className="mt-[10px] h-[45px] w-[280px] rounded-[10px] border border-[#D4D4D4] bg-white px-[12px] text-[17px] font-normal outline-0 lg:w-[500px]"
-                        type="text"
+                        className='mt-[10px] h-[45px] w-[280px] rounded-[10px] border border-[#D4D4D4] bg-white px-[12px] text-[17px] font-normal outline-0 lg:w-[500px]'
+                        type='text'
                         maxLength={100}
-                        placeholder="new york, us"
+                        placeholder='new york, us'
                         {...register('location')}
                       />
                     </div>
                     {user.isCompany && (
-                      <div className="mt-[20px]">
-                        <span className="flex flex-row">
+                      <div className='mt-[20px]'>
+                        <span className='flex flex-row'>
                           Website
-                          <p className="ml-[8px] text-[10px] font-normal text-[#ff0000] ">
+                          <p className='ml-[8px] text-[10px] font-normal text-[#ff0000] '>
                             {errors.website?.message}
                           </p>
                         </span>
                         <input
                           disabled={isLoading}
-                          className="mt-[10px] h-[45px] w-[280px] rounded-[10px] border border-[#D4D4D4] bg-white px-[12px] text-[17px] font-normal outline-0 lg:w-[500px]"
-                          type="text"
+                          className='mt-[10px] h-[45px] w-[280px] rounded-[10px] border border-[#D4D4D4] bg-white px-[12px] text-[17px] font-normal outline-0 lg:w-[500px]'
+                          type='text'
                           maxLength={100}
-                          placeholder=""
+                          placeholder=''
                           {...register('website')}
                         />
                       </div>
                     )}
                     {!user.isCompany && (
-                      <div className="mt-[20px]">
-                        <span className="flex flex-row">
+                      <div className='mt-[20px]'>
+                        <span className='flex flex-row'>
                           Personal blog
-                          <p className="ml-[8px] text-[10px] font-normal text-[#ff0000] ">
+                          <p className='ml-[8px] text-[10px] font-normal text-[#ff0000] '>
                             {errors.personalBlog?.message}
                           </p>
                         </span>
                         <input
                           disabled={isLoading}
-                          className="mt-[10px] h-[45px] w-[280px] rounded-[10px] border border-[#D4D4D4] bg-white px-[12px] text-[17px] font-normal outline-0 lg:w-[500px]"
-                          type="text"
+                          className='mt-[10px] h-[45px] w-[280px] rounded-[10px] border border-[#D4D4D4] bg-white px-[12px] text-[17px] font-normal outline-0 lg:w-[500px]'
+                          type='text'
                           maxLength={100}
-                          placeholder=""
+                          placeholder=''
                           {...register('personalBlog')}
                         />
                       </div>
                     )}
                     {!user.isCompany && (
-                      <div className="mt-[20px]">
-                        <span className="flex flex-row">
+                      <div className='mt-[20px]'>
+                        <span className='flex flex-row'>
                           Github
-                          <p className="ml-[8px] text-[10px] font-normal text-[#ff0000] ">
+                          <p className='ml-[8px] text-[10px] font-normal text-[#ff0000] '>
                             {errors.githubLink?.message}
                           </p>
                         </span>
                         <input
                           disabled={isLoading}
-                          className="mt-[10px] h-[45px] w-[280px] rounded-[10px] border border-[#D4D4D4] bg-white px-[12px] text-[17px] font-normal outline-0 lg:w-[500px]"
-                          type="text"
+                          className='mt-[10px] h-[45px] w-[280px] rounded-[10px] border border-[#D4D4D4] bg-white px-[12px] text-[17px] font-normal outline-0 lg:w-[500px]'
+                          type='text'
                           maxLength={100}
-                          placeholder=""
+                          placeholder=''
                           {...register('githubLink')}
                         />
                       </div>
                     )}
-                    <div className="mt-[20px]">
-                      <span className="flex flex-row">
+                    <div className='mt-[20px]'>
+                      <span className='flex flex-row'>
                         Calendly link
-                        <p className="ml-[8px] text-[10px] font-normal text-[#ff0000] ">
+                        <p className='ml-[8px] text-[10px] font-normal text-[#ff0000] '>
                           {errors.scheduleCalendlyLink?.message}
                         </p>
                       </span>
-                      <div className="relative flex items-center">
-                        <span className="absolute left-3 top-[25px] self-center text-[17px] font-normal">
+                      <div className='relative flex items-center'>
+                        <span className='absolute left-3 top-[25px] self-center text-[17px] font-normal'>
                           calendly.com/
                         </span>
                         <input
                           disabled={isLoading}
-                          className="mt-[10px] h-[45px] w-[280px] rounded-[10px] border border-[#D4D4D4] bg-white pl-[123px] pr-[10px] text-[17px] font-normal outline-0 lg:w-[500px]"
-                          type="text"
+                          className='mt-[10px] h-[45px] w-[280px] rounded-[10px] border border-[#D4D4D4] bg-white pl-[123px] pr-[10px] text-[17px] font-normal outline-0 lg:w-[500px]'
+                          type='text'
                           maxLength={100}
-                          placeholder=""
+                          placeholder=''
                           {...register('scheduleCalendlyLink')}
                         />
                       </div>
                     </div>
                     <div className={`mt-[20px]`}>
-                      <span className="flex flex-row">
+                      <span className='flex flex-row'>
                         Service tags
-                        <p className="ml-[8px] text-[10px] font-normal text-[#ff0000] ">
+                        <p className='ml-[8px] text-[10px] font-normal text-[#ff0000] '>
                           {errors.tags?.message}
                         </p>
                       </span>
                       <Controller
-                        name="tags"
+                        name='tags'
                         control={control}
                         defaultValue={[]}
                         rules={{
@@ -608,15 +608,15 @@ const Profile = () => {
                             {...field}
                             multiple
                             disabled={isLoading}
-                            className="mt-[10px]"
+                            className='mt-[10px]'
                             options={skillOptions}
-                            size="small"
+                            size='small'
                             getOptionLabel={(option) => `${option}`}
                             filterOptions={(options, state) =>
                               options.filter((option) =>
                                 option
                                   .toLowerCase()
-                                  .includes(state.inputValue.toLowerCase()),
+                                  .includes(state.inputValue.toLowerCase())
                               )
                             }
                             onChange={(e, newValue) => {
@@ -631,8 +631,8 @@ const Profile = () => {
                             renderInput={(params) => (
                               <TextField
                                 {...params}
-                                variant="outlined"
-                                id="margin-none"
+                                variant='outlined'
+                                id='margin-none'
                                 sx={{
                                   width: isSmallScreen ? '280px' : '500px',
                                   marginBottom: `${
@@ -656,20 +656,20 @@ const Profile = () => {
                         )}
                       />
                     </div>
-                    <div className="mt-[20px]">
-                      <span className="flex flex-row">
+                    <div className='mt-[20px]'>
+                      <span className='flex flex-row'>
                         {!user.isCompany
                           ? 'Provide a short description about yourself'
                           : 'Provide a short description about your organization'}
-                        <p className="ml-[8px] text-[10px] font-normal text-[#ff0000] ">
+                        <p className='ml-[8px] text-[10px] font-normal text-[#ff0000] '>
                           {errors.description?.message}
                         </p>
                       </span>
                       <textarea
                         disabled={isLoading}
-                        className="mt-[10px] h-[200px] w-[380px] rounded-[10px] border border-[#D4D4D4] bg-white py-[25px] px-[20px] text-[17px] font-normal outline-0 lg:w-[500px]"
+                        className='mt-[10px] h-[200px] w-[380px] rounded-[10px] border border-[#D4D4D4] bg-white px-[20px] py-[25px] text-[17px] font-normal outline-0 lg:w-[500px]'
                         maxLength={100}
-                        placeholder=""
+                        placeholder=''
                         {...register('description')}
                       />
                     </div>
@@ -677,34 +677,34 @@ const Profile = () => {
                 </div>
               </div>
               {isLoading ? (
-                <div className="mt-[60px] flex pb-[10px] lg:pb-60">
+                <div className='mt-[60px] flex pb-[10px] lg:pb-60'>
                   <button
                     disabled={true}
-                    className=" mr-[15px] h-[50px] w-[250px] rounded-[10px] bg-[#7a89a5] py-[12px] px-[25px] text-[12px] font-bold text-white  lg:text-[16px]"
+                    className=' mr-[15px] h-[50px] w-[250px] rounded-[10px] bg-[#7a89a5] px-[25px] py-[12px] text-[12px] font-bold text-white  lg:text-[16px]'
                     onClick={handleSubmit(onSubmit)}
                   >
-                    <span className="">Update account</span>
+                    <span className=''>Update account</span>
                   </button>
                   <svg
-                    className="mt-1 animate-spin"
-                    height="40px"
-                    id="Icons"
-                    version="1.1"
-                    viewBox="0 0 80 80"
-                    width="40px"
-                    xmlns="http://www.w3.org/2000/svg"
+                    className='mt-1 animate-spin'
+                    height='40px'
+                    id='Icons'
+                    version='1.1'
+                    viewBox='0 0 80 80'
+                    width='40px'
+                    xmlns='http://www.w3.org/2000/svg'
                   >
-                    <path d="M58.385,34.343V21.615L53.77,26.23C50.244,22.694,45.377,20.5,40,20.5c-10.752,0-19.5,8.748-19.5,19.5S29.248,59.5,40,59.5  c7.205,0,13.496-3.939,16.871-9.767l-4.326-2.496C50.035,51.571,45.358,54.5,40,54.5c-7.995,0-14.5-6.505-14.5-14.5  S32.005,25.5,40,25.5c3.998,0,7.617,1.632,10.239,4.261l-4.583,4.583H58.385z" />
+                    <path d='M58.385,34.343V21.615L53.77,26.23C50.244,22.694,45.377,20.5,40,20.5c-10.752,0-19.5,8.748-19.5,19.5S29.248,59.5,40,59.5  c7.205,0,13.496-3.939,16.871-9.767l-4.326-2.496C50.035,51.571,45.358,54.5,40,54.5c-7.995,0-14.5-6.505-14.5-14.5  S32.005,25.5,40,25.5c3.998,0,7.617,1.632,10.239,4.261l-4.583,4.583H58.385z' />
                   </svg>
                 </div>
               ) : (
-                <div className="mt-[60px] pb-60">
+                <div className='mt-[60px] pb-60'>
                   <button
-                    type="submit"
+                    type='submit'
                     onClick={handleSubmit(onSubmit)}
-                    className={`h-[50px] w-[250px] rounded-[10px] border border-[#0354EC] py-[12px] px-[25px] text-[12px] font-bold text-[#0354EC] hover:bg-[#0354EC] hover:text-[#fff] lg:text-[16px]`}
+                    className={`h-[50px] w-[250px] rounded-[10px] border border-[#0354EC] px-[25px] py-[12px] text-[12px] font-bold text-[#0354EC] hover:bg-[#0354EC] hover:text-[#fff] lg:text-[16px]`}
                   >
-                    <span className="">Update account</span>
+                    <span className=''>Update account</span>
                   </button>
                 </div>
               )}

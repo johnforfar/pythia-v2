@@ -1,72 +1,71 @@
 .ql-toolbar .ql-stroke {
-    fill: none;
-    stroke: #fff;
+  fill: none;
+  stroke: #fff;
 }
 
 .ql-toolbar .ql-fill {
-    fill: #fff;
-    stroke: none;
+  fill: #fff;
+  stroke: none;
 }
 
 .ql-toolbar .ql-picker {
-    display: none;
-    color: #000;
+  display: none;
+  color: #000;
 }
 
 .my-quill .ql-container.ql-snow {
-    border: 0px solid #000;
-    border-radius: 10px;
+  border: 0px solid #000;
+  border-radius: 10px;
 }
 
 .my-quill .ql-toolbar.ql-snow {
-    display: none; /* Esconde completamente a barra de ferramentas */
-
+  display: none; /* Esconde completamente a barra de ferramentas */
 }
 
 .my-quill .ql-editor::before {
-    color: #C5C4C4;
-    opacity: 1;
-    font-style: normal;
+  color: #c5c4c4;
+  opacity: 1;
+  font-style: normal;
 }
 
 .ql-editor {
-    max-height: 250px;
-    overflow: auto;
+  max-height: 250px;
+  overflow: auto;
 }
 
 /* Nova regra para esconder os ícones de formatação */
 .my-quill .ql-toolbar.ql-snow .ql-formats {
-    display: none;
+  display: none;
 }
 
 .my-quill .ql-container.ql-snow {
-    border: 0px solid #000;
-    border-radius: 10px;
+  border: 0px solid #000;
+  border-radius: 10px;
 }
 
 .my-quill .ql-toolbar.ql-snow {
-    border: 0px solid #000;
-    border-radius: 10px;
+  border: 0px solid #000;
+  border-radius: 10px;
 }
 
 .my-quill .ql-editor {
-    max-height: 250px;
-    overflow: auto;
-    background-color: #FFFFFF; /* Cor de fundo branca */
-    border-radius: 5px;
-    color: #000000; /* Cor do texto preta */
-    font-size: 15px; /* Tamanho do texto aumentado */
-    padding: 15px; /* Espaçamento interno aumentado */
+  max-height: 250px;
+  overflow: auto;
+  background-color: #ffffff; /* Cor de fundo branca */
+  border-radius: 5px;
+  color: #000000; /* Cor do texto preta */
+  font-size: 15px; /* Tamanho do texto aumentado */
+  padding: 15px; /* Espaçamento interno aumentado */
 }
 
 .my-quill .ql-editor::before {
-    color: #808080; /* Cor do placeholder cinza */
-    opacity: 0.5; /* Ajuste a opacidade conforme necessário */
-    font-style: normal;
-    font-size: 15px; /* Tamanho do texto aumentado */
+  color: #808080; /* Cor do placeholder cinza */
+  opacity: 0.5; /* Ajuste a opacidade conforme necessário */
+  font-style: normal;
+  font-size: 15px; /* Tamanho do texto aumentado */
 }
 
 /* Regras para esconder ícones de formatação */
 .my-quill .ql-toolbar.ql-snow .ql-formats {
-    display: none;
+  display: none;
 }
