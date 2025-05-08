@@ -48,7 +48,7 @@ const PythiaLandingPage = () => {
           process.env.NEXT_PUBLIC_ENVIRONMENT === 'PROD'
             ? `/pythia/chat/${res.id}`
             : `/chat/${res.id}`
-        }`
+        }`,
       )
       setPythiaUpdated(!pythiaUpdated)
     } catch (err) {

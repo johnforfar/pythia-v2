@@ -1,6 +1,7 @@
 {
   "extends": ["@rocketseat/eslint-config/react", "plugin:prettier/recommended"],
   "rules": {
-    "semi": ["error", "never"]
+    "semi": ["error", "never"],
+    "prettier/prettier": "error"
   }
 }

@@ -94,14 +94,14 @@ const Login = () => {
       setUser(res)
       setIsLoading(false)
       push(
-        `${process.env.NEXT_PUBLIC_ENVIRONMENT === 'PROD' ? `/pythia/` : `/`}`
+        `${process.env.NEXT_PUBLIC_ENVIRONMENT === 'PROD' ? `/pythia/` : `/`}`,
       )
     } catch (err) {
       if (err.response.data.message === 'Unconfirmed Email') {
         toast.error('Unconfirmed email')
       } else if (err.response.data.message === 'User disabled') {
         toast.error(
-          'Please allow 24 to 48 hours for the community to approve your application'
+          'Please allow 24 to 48 hours for the community to approve your application',
         )
       } else {
         toast.error('Incorrect credentials')

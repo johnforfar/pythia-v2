@@ -3,7 +3,7 @@
 /* eslint-disable no-unused-vars */
 
 import Footer from '../Footer'
-import { useEffect, useState, useContext, useRef } from 'react'
+import { useEffect, useState, useContext, useRef, useCallback } from 'react'
 import dynamic from 'next/dynamic'
 import 'react-quill/dist/quill.snow.css' // import styles
 import './react-quill.css'
@@ -39,23 +39,21 @@ const ChatPage = (id: any) => {
 
   const messagesEndRef = useRef(null)
 
-  async function getData() {
+  const getData = useCallback(async () => {
     const { userSessionToken } = parseCookies()
-
     const data = {
       id: id.id,
     }
-
     try {
       const res = await getUserChat(data, userSessionToken)
       setPythiaChat(res)
     } catch (err) {
       console.log(err)
-      toast.error(`Error: ${err.response.data.message}`)
+      toast.error(`Error: ${(err as any).response.data.message}`)
     }
-  }
+  }, [id, setPythiaChat])
 
-  async function handleCreateNewInput() {
+  const handleCreateNewInput = useCallback(async () => {
     const { userSessionToken } = parseCookies()
     const tempId = Date.now()
 
@@ -74,11 +72,10 @@ const ChatPage = (id: any) => {
     }
 
     const chatPythiaNew = { ...pythiaChat }
-    const inputs = [...pythiaChat.PythiaInputs]
+    const inputs = [...(pythiaChat?.PythiaInputs || [])]
     const finalInputs = [...inputs, newUserInput]
 
     chatPythiaNew.PythiaInputs = finalInputs
-
     setPythiaChat(chatPythiaNew)
 
     const data = {
@@ -96,52 +93,57 @@ const ChatPage = (id: any) => {
       setPythiaChat(newChat)
     } catch (err) {
       console.log(err)
-      toast.error(`Error: ${err.response.data.message}`)
+      toast.error(`Error: ${(err as any).response.data.message}`)
     }
-  }
+  }, [id, newMessageHtml, pythiaChat, setNewMessageHtml, setPythiaChat])
 
-  async function insertBadFeedbackInput(inputId: string) {
-    const { userSessionToken } = parseCookies()
-
-    setIsLoading(true)
-    const chatPythiaNew = { ...pythiaChat }
-    const inputIndex = chatPythiaNew.PythiaInputs.findIndex(
-      (pinput) => pinput.id === inputId
-    )
-    chatPythiaNew.PythiaInputs[inputIndex].badResponseFeedback = true
-
-    setPythiaChat(chatPythiaNew)
-
-    const data = {
-      id: inputId,
-      isBadResponse: true,
-    }
-
-    try {
-      await insertBadFeedback(data, userSessionToken)
-    } catch (err) {
-      console.log(err)
-      toast.error(`Error: ${err.response.data.message}`)
-    }
-    setIsLoading(false)
-  }
-
-  function newMessageSave() {
+  const newMessageSave = useCallback(() => {
     if (!isLoading) {
       handleCreateNewInput()
     }
-  }
+  }, [isLoading, handleCreateNewInput])
 
-  const handleKeyPress = (event) => {
-    if (
-      event.key === 'Enter' &&
-      !event.ctrlKey &&
-      !event.shiftKey &&
-      !event.altKey
-    ) {
-      newMessageSave()
-    }
-  }
+  const handleKeyPress = useCallback(
+    (event) => {
+      if (
+        event.key === 'Enter' &&
+        !event.ctrlKey &&
+        !event.shiftKey &&
+        !event.altKey
+      ) {
+        newMessageSave()
+      }
+    },
+    [newMessageSave],
+  )
+
+  const insertBadFeedbackInput = useCallback(
+    async (inputId: string) => {
+      const { userSessionToken } = parseCookies()
+      setIsLoading(true)
+      const chatPythiaNew = { ...pythiaChat }
+      const inputIndex = chatPythiaNew.PythiaInputs.findIndex(
+        (pinput) => pinput.id === inputId,
+      )
+      chatPythiaNew.PythiaInputs[inputIndex].badResponseFeedback = true
+
+      setPythiaChat(chatPythiaNew)
+
+      const data = {
+        id: inputId,
+        isBadResponse: true,
+      }
+
+      try {
+        await insertBadFeedback(data, userSessionToken)
+      } catch (err) {
+        console.log(err)
+        toast.error(`Error: ${(err as any).response.data.message}`)
+      }
+      setIsLoading(false)
+    },
+    [pythiaChat, setPythiaChat, setIsLoading],
+  )
 
   const scrollToBottomInstant = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'instant' })
@@ -153,17 +155,17 @@ const ChatPage = (id: any) => {
     return () => {
       document.removeEventListener('keydown', handleKeyPress)
     }
-  }, [newMessageHtml])
+  }, [handleKeyPress])
 
   useEffect(() => {
     if (!isLoading) {
       scrollToBottomInstant()
     }
-  }, [pythiaChat])
+  }, [pythiaChat, isLoading])
 
   useEffect(() => {
     getData()
-  }, [id])
+  }, [getData])
 
   // Render chat messages
   const renderChatMessages = () => {

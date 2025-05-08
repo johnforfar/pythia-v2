@@ -68,7 +68,7 @@ const Sidebar = ({ onValueChange }) => {
         process.env.NEXT_PUBLIC_ENVIRONMENT === 'PROD'
           ? `/pythia/chat/${id}`
           : `/chat/${id}`
-      }`
+      }`,
     )
   }
 
@@ -133,7 +133,7 @@ const Sidebar = ({ onValueChange }) => {
     try {
       const res = await deleteUserChat(data, userSessionToken)
       push(
-        `${process.env.NEXT_PUBLIC_ENVIRONMENT === 'PROD' ? `/pythia` : `/`}`
+        `${process.env.NEXT_PUBLIC_ENVIRONMENT === 'PROD' ? `/pythia` : `/`}`,
       )
       window.location.reload()
     } catch (err) {

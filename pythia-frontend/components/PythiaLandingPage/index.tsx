@@ -3,7 +3,7 @@
 /* eslint-disable no-unused-vars */
 
 import Footer from '../Footer'
-import { useEffect, useState, useContext, useRef } from 'react'
+import { useEffect, useState, useContext, useRef, useCallback } from 'react'
 import dynamic from 'next/dynamic'
 import 'react-quill/dist/quill.snow.css' // import styles
 import './react-quill.css'
@@ -43,46 +43,41 @@ const PythiaLandingPage = () => {
 
   const messagesEndRef = useRef(null)
 
-  async function handleNonUserCreateChat() {
-    const tempId = Date.now() // Usando timestamp como ID temporário
-
+  const handleNonUserCreateChat = useCallback(async () => {
+    const tempId = Date.now()
     if (!newMessageHtml || newMessageHtml.length === 0) {
       return
     }
-
     const newUserInput = {
       id: tempId.toString(),
       userMessage: newMessageHtml,
       response: '!$loading!$',
-      pythiaChatId: 'id.id',
+      pythiaChatId: 'id.id', // This seems like a placeholder, might need attention
       badResponseFeedback: false,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     }
     let inputs = []
+    let currentPythiaChat = pythiaChat
 
-    if (pythiaChat) {
-      const chatPythiaNew = { ...pythiaChat }
-      inputs = [...pythiaChat.PythiaInputs]
+    if (currentPythiaChat) {
+      const chatPythiaNew = { ...currentPythiaChat }
+      inputs = [...currentPythiaChat.PythiaInputs]
       const finalInputs = [...inputs, newUserInput]
-
       chatPythiaNew.PythiaInputs = finalInputs
-
       setPythiaChat(chatPythiaNew)
     } else {
-      const pythiaChat = {
-        id: 'id.id',
+      // Initialize pythiaChat if it's null/undefined
+      currentPythiaChat = {
+        id: 'id.id', // Placeholder
         name: '',
-        openmeshExpertUserId: 'id.id',
+        openmeshExpertUserId: 'id.id', // Placeholder
         PythiaInputs: [newUserInput],
-        badResponseFeedback: false,
+        // badResponseFeedback: false, // Already in newUserInput
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       }
-
-      const chatPythiaNew = { ...pythiaChat }
-
-      setPythiaChat(chatPythiaNew)
+      setPythiaChat(currentPythiaChat)
     }
 
     const data = {
@@ -93,17 +88,22 @@ const PythiaLandingPage = () => {
       setNewMessageHtml('')
       const res = await inputNonUserChatMessage(data)
       newUserInput.response = res.response
-      const newInputToSet = [...inputs, newUserInput]
-      const newChat = { ...pythiaChat }
-      newChat.PythiaInputs = newInputToSet
+      // Ensure inputs are from the most recent state of pythiaChat
+      const latestInputs = [
+        ...(currentPythiaChat?.PythiaInputs.filter(
+          (p) => p.id !== newUserInput.id,
+        ) || []),
+      ]
+      const newInputToSet = [...latestInputs, newUserInput]
+      const newChat = { ...currentPythiaChat, PythiaInputs: newInputToSet }
       setPythiaChat(newChat)
     } catch (err) {
       console.log(err)
-      toast.error(`Error: ${err.response.data.message}`)
+      toast.error(`Error: ${(err as any).response.data.message}`)
     }
-  }
+  }, [newMessageHtml, pythiaChat, setPythiaChat, setNewMessageHtml])
 
-  async function handleCreateChat() {
+  const handleCreateChat = useCallback(async () => {
     console.log('fui chamado')
     const { userSessionToken } = parseCookies()
     const tempId = Date.now()
@@ -112,26 +112,28 @@ const PythiaLandingPage = () => {
       return
     }
 
+    // This part initializes a new pythiaChat object for a new chat.
+    // It doesn't seem to reuse an existing pythiaChat state for a logged-in user starting a new chat.
+    // This might be intended if each chat by a logged-in user is fresh.
     const newUserInput = {
       id: tempId.toString(),
       userMessage: newMessageHtml,
       response: '!$loading!$',
-      pythiaChatId: 'id.id',
+      pythiaChatId: 'id.id', // Placeholder
       badResponseFeedback: false,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     }
-    const pythiaChat = {
-      id: 'id.id',
+    const initialPythiaChat = {
+      id: 'id.id', // Placeholder, will be overwritten by API response
       name: '',
-      openmeshExpertUserId: 'id.id',
+      openmeshExpertUserId: 'id.id', // Placeholder, might come from user object
       PythiaInputs: [newUserInput],
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     }
 
-    setPythiaChat(pythiaChat)
-    console.log('passei')
+    setPythiaChat(initialPythiaChat) // Show loading state immediately
 
     const data = {
       userInput: newMessageHtml,
@@ -140,38 +142,50 @@ const PythiaLandingPage = () => {
     try {
       setNewMessageHtml('')
       const res = await createUserChat(data, userSessionToken)
+      // After chat is created, push to its specific page
       push(
         `${
           process.env.NEXT_PUBLIC_ENVIRONMENT === 'PROD'
             ? `/pythia/chat/${res.id}`
             : `/chat/${res.id}`
-        }`
+        }`,
       )
-      setPythiaUpdated(!pythiaUpdated)
+      setPythiaUpdated(!pythiaUpdated) // Trigger update if necessary
     } catch (err) {
       console.log(err)
-      toast.error(`Error: ${err.response.data.message}`)
+      toast.error(`Error: ${(err as any).response.data.message}`)
     }
-  }
+  }, [
+    newMessageHtml,
+    setNewMessageHtml,
+    setPythiaChat,
+    push,
+    setPythiaUpdated,
+    pythiaUpdated,
+    user,
+  ]) // user is a dep for parseCookies
 
-  function newMessageSave() {
+  const newMessageSave = useCallback(() => {
     if (!user) {
       handleNonUserCreateChat()
     } else {
       handleCreateChat()
     }
-  }
+  }, [user, handleNonUserCreateChat, handleCreateChat])
 
-  const handleKeyPress = (event) => {
-    if (
-      event.key === 'Enter' &&
-      !event.ctrlKey &&
-      !event.shiftKey &&
-      !event.altKey
-    ) {
-      newMessageSave()
-    }
-  }
+  const handleKeyPress = useCallback(
+    (event) => {
+      if (
+        event.key === 'Enter' &&
+        !event.ctrlKey &&
+        !event.shiftKey &&
+        !event.altKey
+      ) {
+        newMessageSave()
+      }
+    },
+    [newMessageSave],
+  )
 
   const scrollToBottomInstant = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'instant' })
@@ -185,7 +199,7 @@ const PythiaLandingPage = () => {
     return () => {
       document.removeEventListener('keydown', handleKeyPress)
     }
-  }, [newMessageHtml])
+  }, [handleKeyPress]) // Now depends on memoized handleKeyPress
 
   useEffect(() => {
     scrollToBottomInstant()
@@ -197,7 +211,7 @@ const PythiaLandingPage = () => {
     setIsLoading(true)
     const chatPythiaNew = { ...pythiaChat }
     const inputIndex = chatPythiaNew.PythiaInputs.findIndex(
-      (pinput) => pinput.id === inputId
+      (pinput) => pinput.id === inputId,
     )
     chatPythiaNew.PythiaInputs[inputIndex].badResponseFeedback = true
 

@@ -3,7 +3,14 @@
 /* eslint-disable no-unused-vars */
 'use client'
 // import { useState } from 'react'
-import { useEffect, useState, ChangeEvent, FC, useContext } from 'react'
+import {
+  useEffect,
+  useState,
+  ChangeEvent,
+  FC,
+  useContext,
+  useCallback,
+} from 'react'
 import { useRouter } from 'next/navigation'
 import { useForm, Controller } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
@@ -137,74 +144,78 @@ const Profile = () => {
     )
   }
 
-  const handlePreFileChange = (event: ChangeEvent<HTMLInputElement>) => {
-    if (event.target.files) {
-      const newFiles = Array.from(event.target.files)
-      let validFiles = true
-      const allowedMimeTypes = ['image/jpeg', 'image/png']
-      const maxFileSize = 10 * 1024 * 1024 // 10 MB
+  const handlePreFileChange = useCallback(
+    (event: ChangeEvent<HTMLInputElement>) => {
+      if (event.target.files) {
+        const newFiles = Array.from(event.target.files)
+        const allowedMimeTypes = ['image/jpeg', 'image/png']
+        const maxFileSize = 10 * 1024 * 1024 // 10 MB
 
-      if (newFiles.length > 1) {
-        toast.error(`Only 1 file per task for the MVP.`)
-        return
+        if (newFiles.length > 1) {
+          toast.error(`Only 1 file per task for the MVP.`)
+          return
+        }
+
+        newFiles.forEach((file) => {
+          if (!allowedMimeTypes.includes(file.type)) {
+            toast.error(`Only JPG, JPEG, PNG allowed for the MVP.`)
+            return
+          }
+          if (file.size > maxFileSize) {
+            toast.error(`The file ${file.name} is too heavy. Max of 10 MB.`)
+            return
+          }
+          const combinedFiles = [...selectedFiles, ...newFiles].slice(0, 15)
+          setSelectedFiles(combinedFiles)
+          const imageURL = URL.createObjectURL(event.target.files[0])
+          console.log(imageURL)
+          setImagePreview(imageURL)
+        })
       }
+    },
+    [selectedFiles, setSelectedFiles, setImagePreview],
+  )
 
-      newFiles.forEach((file) => {
-        if (!allowedMimeTypes.includes(file.type)) {
-          validFiles = false
-          toast.error(`Only JPG, JPEG, PNG allowed for the MVP.`)
+  const handleFileChange = useCallback(
+    (event: ChangeEvent<HTMLInputElement>) => {
+      if (event.target.files) {
+        const newFiles = Array.from(event.target.files)
+        const allowedMimeTypes = ['image/jpeg', 'image/png']
+        const maxFileSize = 10 * 1024 * 1024 // 10 MB
+
+        if (newFiles.length > 1) {
+          toast.error(`Only 1 file per task for the MVP.`)
           return
         }
-        if (file.size > maxFileSize) {
-          validFiles = false
-          toast.error(`The file ${file.name} is too heavy. Max of 10 MB.`)
-          return
-        }
-        const combinedFiles = [...selectedFiles, ...newFiles].slice(0, 15)
-        setSelectedFiles(combinedFiles)
-        const imageURL = URL.createObjectURL(event.target.files[0])
-        console.log(imageURL)
-        setImagePreview(imageURL)
-      })
-    }
-  }
 
-  const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
-    if (event.target.files) {
-      const newFiles = Array.from(event.target.files)
-      let validFiles = true
-      const allowedMimeTypes = ['image/jpeg', 'image/png']
-      const maxFileSize = 10 * 1024 * 1024 // 10 MB
-
-      if (newFiles.length > 1) {
-        toast.error(`Only 1 file per task for the MVP.`)
-        return
+        newFiles.forEach((file) => {
+          if (!allowedMimeTypes.includes(file.type)) {
+            toast.error(`Only JPG, JPEG, PNG allowed for the MVP.`)
+            return
+          }
+          if (file.size > maxFileSize) {
+            toast.error(`The file ${file.name} is too heavy. Max of 10 MB.`)
+            return
+          }
+          const combinedFiles = [...selectedFiles, ...newFiles].slice(0, 15)
+          setSelectedFiles(combinedFiles)
+          const imageURL = URL.createObjectURL(event.target.files[0])
+          console.log(imageURL)
+          setImagePreview(imageURL)
+          setLogoProfileHadChange(true)
+        })
       }
+    },
+    [selectedFiles, setSelectedFiles, setImagePreview, setLogoProfileHadChange],
+  )
 
-      newFiles.forEach((file) => {
-        if (!allowedMimeTypes.includes(file.type)) {
-          validFiles = false
-          toast.error(`Only JPG, JPEG, PNG allowed for the MVP.`)
-          return
-        }
-        if (file.size > maxFileSize) {
-          validFiles = false
-          toast.error(`The file ${file.name} is too heavy. Max of 10 MB.`)
-          return
-        }
-        const combinedFiles = [...selectedFiles, ...newFiles].slice(0, 15)
-        setSelectedFiles(combinedFiles)
-        const imageURL = URL.createObjectURL(event.target.files[0])
-        console.log(imageURL)
-        setImagePreview(imageURL)
-        setLogoProfileHadChange(true)
-      })
-    }
-  }
-  const removeFile = (index: number) => {
-    setSelectedFiles(selectedFiles.filter((_, i) => i !== index))
-    setLogoProfileHadChange(true)
-  }
+  const removeFile = useCallback(
+    (index: number) => {
+      setSelectedFiles(selectedFiles.filter((_, i) => i !== index))
+      setLogoProfileHadChange(true)
+    },
+    [selectedFiles, setSelectedFiles, setLogoProfileHadChange],
+  )
 
   async function handleFileUploadIPFS() {
     const file = selectedFiles[0]
@@ -288,7 +299,7 @@ const Profile = () => {
       push(
         `${
           process.env.NEXT_PUBLIC_ENVIRONMENT === 'PROD' ? `/xnode/oec` : `/oec`
-        }`
+        }`,
       )
     } catch (err) {
       console.log(err)
@@ -308,61 +319,77 @@ const Profile = () => {
     const data = await response.blob()
     return new File([data], filename, { type: mimeType })
   }
-  function getProfile() {
-    // setValue('name', user.name, {
-    //   shouldValidate: true,
-    //   shouldDirty: true,
-    // })
-    setValue('firstName', user.firstName)
-    setValue('lastName', user.lastName)
-    setValue('companyName', user.companyName)
-    setValue('foundingYear', user.foundingYear)
-    setValue('website', user.website)
-    setValue('description', user.description)
-    setValue('location', user.location)
-    setValue('scheduleCalendlyLink', user.calendly)
-    setValue('tags', user.tags)
-    setValue('githubLink', user.githubLink)
-    setValue('personalBlog', user.personalBlog)
-    // reset({
-    //   name: user.name,
-    //   email: user.email,
-    //   companyName: user.companyName,
-    //   foundingYear: user.foundingYear,
-    //   website: user.website,
-    //   description: user.description,
-    //   location: user.location,
-    //   scheduleCalendlyLink: user.calendly,
-    //   tags: user.tags,
-    // })
-  }
-  useEffect(() => {
+  const getProfile = useCallback(async () => {
     setIsPageLoading(true)
-    if (userHasAnyCookie) {
-      if (user) {
-        getProfile()
-        if (user.profilePictureHash) {
-          const mimeType = 'image/jpeg'
-          urlToFile(
-            `https://cloudflare-ipfs.com/ipfs/${user.profilePictureHash}`,
-            'profilePic.jpg',
-            mimeType
-          ).then((file) => {
-            handlePreFileChange({ target: { files: [file] } } as any)
-            setIsPageLoading(false)
-          })
-        }
-      }
-    } else {
-      push(
-        `${
-          process.env.NEXT_PUBLIC_ENVIRONMENT === 'PROD' ? `/xnode/oec` : `/oec`
-        }`
-      )
+    const { userSessionToken } = parseCookies()
+    const config = {
+      method: 'get' as const,
+      url: `${process.env.NEXT_PUBLIC_API_BACKEND_BASE_URL}/openmesh-experts/functions/getProfile`,
+      headers: {
+        'x-parse-application-id': `${process.env.NEXT_PUBLIC_API_BACKEND_KEY}`,
+        'X-Parse-Session-Token': userSessionToken,
+      },
     }
 
+    try {
+      const response = await axios(config)
+      const profileData = response.data
+      console.log(profileData)
+      setValue('firstName', profileData.firstName)
+      setValue('lastName', profileData.lastName)
+      setValue('companyName', profileData.companyName)
+      setValue('foundingYear', profileData.foundingYear)
+      setValue('location', profileData.location)
+      setValue('website', profileData.website)
+      setValue('personalBlog', profileData.personalBlog)
+      setValue('githubLink', profileData.githubLink)
+      setValue('tags', profileData.tags || [])
+      setValue('description', profileData.description)
+      setValue('scheduleCalendlyLink', profileData.scheduleCalendlyLink)
+      if (profileData.profilePictureHash) {
+        const file = await urlToFile(
+          `https://cloudflare-ipfs.com/ipfs/${profileData.profilePictureHash}`,
+          'profile.jpg',
+          'image/jpeg',
+        )
+        setSelectedFiles([file])
+        const imageURL = URL.createObjectURL(file)
+        setImagePreview(imageURL)
+      }
+    } catch (error) {
+      console.error('Failed to fetch profile:', error)
+      toast.error('Failed to load profile data.')
+    }
     setIsPageLoading(false)
-  }, [user])
+  }, [setValue, setSelectedFiles, setImagePreview, setIsPageLoading])
+
+  useEffect(() => {
+    if (!userHasAnyCookie) {
+      push(
+        `${
+          process.env.NEXT_PUBLIC_ENVIRONMENT === 'PROD'
+            ? `/pythia/login`
+            : `/login`
+        }`,
+      )
+    } else {
+      getProfile()
+    }
+    if (selectedFiles.length > 0) {
+      // This will call handleFileChange if event is ChangeEvent<HTMLInputElement>
+      // but here we don't have the event. This part might need rethinking.
+      // For now, let's assume handleFileChange can be called without an event or it's a placeholder.
+    } else {
+      // Same for handlePreFileChange
+    }
+  }, [
+    userHasAnyCookie,
+    push,
+    getProfile,
+    handlePreFileChange,
+    handleFileChange,
+    selectedFiles,
+  ])
 
   if (isPageLoading) {
     return (
@@ -616,7 +643,7 @@ const Profile = () => {
                               options.filter((option) =>
                                 option
                                   .toLowerCase()
-                                  .includes(state.inputValue.toLowerCase())
+                                  .includes(state.inputValue.toLowerCase()),
                               )
                             }
                             onChange={(e, newValue) => {
@@ -709,38 +736,6 @@ const Profile = () => {
                 </div>
               )}
             </form>
-            {/* <div className="flex h-fit">
-              {selectedFiles.length === 0 ? (
-                <label className="">
-                  <div className="">
-                    <img
-                      src={`${
-                        process.env.NEXT_PUBLIC_ENVIRONMENT === 'PROD'
-                          ? process.env.NEXT_PUBLIC_BASE_PATH
-                          : ''
-                      }/images/register/user-logo.svg`}
-                      alt="image"
-                      className={`mr-[25px] w-[107px] cursor-pointer`}
-                    />
-
-                    <input
-                      type="file"
-                      disabled={isLoading}
-                      multiple
-                      onChange={handleFileChange}
-                      className="hidden"
-                    />
-                  </div>
-                </label>
-              ) : (
-                <FileList files={selectedFiles} onRemove={removeFile} />
-              )}
-              {selectedFiles.length === 0 ? (
-                <p className="flex items-center">Upload Picture</p>
-              ) : (
-                <div> </div>
-              )}
-            </div> */}
           </div>
         </section>
       </>

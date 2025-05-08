@@ -1,7 +1,7 @@
 /* eslint-disable no-unused-vars */
 import Image from 'next/image'
 import Link from 'next/link'
-import { useEffect, useState, useContext, useRef } from 'react'
+import { useEffect, useState, useContext, useRef, useCallback } from 'react'
 import ThemeToggler from './ThemeToggler'
 import menuData from './menuData'
 import { UserCircle } from 'phosphor-react'
@@ -136,6 +136,184 @@ const Header = () => {
     },
   ]
 
+  const getUserData = useCallback(async () => {
+    const { userSessionToken } = parseCookies()
+    if (userSessionToken) {
+      const config = {
+        method: 'post' as const,
+        url: `${process.env.NEXT_PUBLIC_API_BACKEND_BASE_URL}/openmesh-experts/functions/getCurrentUser`,
+        headers: {
+          'x-parse-application-id': `${process.env.NEXT_PUBLIC_API_BACKEND_KEY}`,
+          'X-Parse-Session-Token': userSessionToken,
+          'Content-Type': 'application/json',
+        },
+      }
+      let dado
+
+      await axios(config).then(function (response) {
+        if (response.data) {
+          dado = response.data
+          setUser(dado)
+        }
+      })
+    }
+  }, [setUser])
+
+  useEffect(() => {
+    if (userHasAnyCookie) {
+      try {
+        console.log('getting the user data')
+        getUserData()
+      } catch (err) {
+        console.log('eroror getting the user session token')
+        destroyCookie(undefined, 'userSessionToken')
+        setUser(null)
+      }
+    } else {
+      localStorage.removeItem('@scalable: user-state-1.0.0')
+      destroyCookie(undefined, 'userSessionToken')
+      setUser(null)
+    }
+
+    const savedNodes = localStorage.getItem('nodes')
+    const savedEdges = localStorage.getItem('edges')
+    if (savedNodes && savedEdges) {
+      setIsWorkspace(true)
+    }
+
+    const savedXnodeType = localStorage.getItem('xnodeType')
+    setXnodeType(savedXnodeType)
+
+    const isEditingX = localStorage.getItem('editingNode')
+    if (isEditingX) {
+      setIsEditingXnode(true)
+    }
+
+    if (savedNodes) {
+      try {
+        setFinalNodes(JSON.parse(savedNodes))
+      } catch (e) {
+        console.error('Failed to parse savedNodes from localStorage', e)
+        setFinalNodes([])
+      }
+    } else {
+      setFinalNodes([])
+    }
+  }, [
+    userHasAnyCookie,
+    getUserData,
+    setUser,
+    setIsWorkspace,
+    setXnodeType,
+    setIsEditingXnode,
+    setFinalNodes,
+  ])
+
+  const getUserNonce = useCallback(async (userAddress: string) => {
+    const config = {
+      method: 'post' as const,
+      url: `${process.env.NEXT_PUBLIC_API_BACKEND_BASE_URL}/openmesh-experts/functions/getUserNonce`,
+      headers: {
+        'x-parse-application-id': `${process.env.NEXT_PUBLIC_API_BACKEND_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      data: {
+        address: userAddress,
+      },
+    }
+    let dado
+
+    await axios(config).then(function (response) {
+      if (response.data) {
+        dado = response.data
+      }
+    })
+    return dado
+  }, [])
+
+  const loginWeb3User = useCallback(
+    async (userAddress: string, signature: string) => {
+      const config = {
+        method: 'post' as const,
+        url: `${process.env.NEXT_PUBLIC_API_BACKEND_BASE_URL}/openmesh-experts/functions/loginByWeb3Address`,
+        headers: {
+          'x-parse-application-id': `${process.env.NEXT_PUBLIC_API_BACKEND_KEY}`,
+        },
+        data: {
+          address: userAddress,
+          signature,
+        },
+      }
+      let dado
+
+      await axios(config).then(function (response) {
+        if (response.data) {
+          dado = response.data
+        }
+      })
+      return dado
+    },
+    [],
+  )
+
+  const { address, isConnected, chain } = useAccount()
+  const { open } = useWeb3Modal()
+
+  const getWeb3Login = useCallback(async () => {
+    if (address && !user && !userHasAnyCookie) {
+      try {
+        let nonceUser = await getUserNonce(address)
+        nonceUser = nonceUser || '0'
+        const hash = hashObject(`${address}-${nonceUser}`)
+        console.log('message to hash')
+        console.log(hash)
+        const finalHash = `0x${hash}`
+        const signature = await signMessageAsync({
+          account: address,
+          message: finalHash,
+        })
+        const res = await loginWeb3User(address, signature)
+        setCookie(null, 'userSessionToken', res.sessionToken)
+        nookies.set(null, 'userSessionToken', res.sessionToken)
+        setUser(res)
+      } catch (err) {
+        toast.error(err as any)
+        console.log('error loging user')
+      }
+    }
+  }, [
+    address,
+    user,
+    userHasAnyCookie,
+    getUserNonce,
+    signMessageAsync,
+    loginWeb3User,
+    setUser,
+  ])
+
+  useEffect(() => {
+    getWeb3Login()
+  }, [getWeb3Login])
+
+  // useEffect(() => {
+  //   const handleClickOutside = (event) => {
+  //     if (
+  //       userNavbarRef.current &&
+  //       !userNavbarRef.current.contains(event.target)
+  //     ) {
+  //       setUserNavbarOpen(false)
+  //     }
+  //   }
+
+  //   // Adiciona o event listener ao document
+  //   document.addEventListener('mousedown', handleClickOutside)
+
+  //   // Cleanup function para remover o event listener
+  //   return () => {
+  //     document.removeEventListener('mousedown', handleClickOutside)
+  //   }
+  // }, [])
+
   async function saveEditingXnode() {
     setIsLoadingUpdate(true)
 
@@ -178,13 +356,15 @@ const Header = () => {
                 process.env.NEXT_PUBLIC_ENVIRONMENT === 'PROD'
                   ? `/xnode/dashboard`
                   : `/dashboard`
-              }`
+              }`,
             )
           }
         })
       } catch (err) {
         toast.error(
-          `Error during Xnode deployment: ${err.response.data.message}`
+          `Error during Xnode deployment: ${
+            (err as any).response.data.message
+          }`,
         )
       }
     } else {
@@ -194,164 +374,11 @@ const Header = () => {
           process.env.NEXT_PUBLIC_ENVIRONMENT === 'PROD'
             ? `/xnode/start-here`
             : `/start-here`
-        }`
+        }`,
       )
     }
     setIsLoadingUpdate(false)
   }
-
-  async function getUserData() {
-    const { userSessionToken } = parseCookies()
-    if (userSessionToken) {
-      const config = {
-        method: 'post' as const,
-        url: `${process.env.NEXT_PUBLIC_API_BACKEND_BASE_URL}/openmesh-experts/functions/getCurrentUser`,
-        headers: {
-          'x-parse-application-id': `${process.env.NEXT_PUBLIC_API_BACKEND_KEY}`,
-          'X-Parse-Session-Token': userSessionToken,
-          'Content-Type': 'application/json',
-        },
-      }
-      let dado
-
-      await axios(config).then(function (response) {
-        if (response.data) {
-          dado = response.data
-          setUser(dado)
-        }
-      })
-    }
-  }
-
-  useEffect(() => {
-    if (userHasAnyCookie) {
-      try {
-        console.log('getting the user data')
-        getUserData()
-      } catch (err) {
-        console.log('eroror getting the user session token')
-        destroyCookie(undefined, 'userSessionToken')
-        setUser(null)
-      }
-    } else {
-      localStorage.removeItem('@scalable: user-state-1.0.0')
-      destroyCookie(undefined, 'userSessionToken')
-      setUser(null)
-    }
-
-    const savedNodes = localStorage.getItem('nodes')
-    const savedEdges = localStorage.getItem('edges')
-    if (savedNodes && savedEdges) {
-      setIsWorkspace(true)
-    }
-
-    const savedXnodeType = localStorage.getItem('xnodeType')
-
-    setXnodeType(savedXnodeType)
-
-    const isEditingX = localStorage.getItem('editingNode')
-    if (isEditingX) {
-      setIsEditingXnode(true)
-    }
-
-    setFinalNodes(JSON.parse(savedNodes))
-  }, [])
-
-  async function getUserNonce(userAddress: string) {
-    const config = {
-      method: 'post' as const,
-      url: `${process.env.NEXT_PUBLIC_API_BACKEND_BASE_URL}/openmesh-experts/functions/getUserNonce`,
-      headers: {
-        'x-parse-application-id': `${process.env.NEXT_PUBLIC_API_BACKEND_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      data: {
-        address: userAddress,
-      },
-    }
-    let dado
-
-    await axios(config).then(function (response) {
-      if (response.data) {
-        dado = response.data
-      }
-    })
-    return dado
-  }
-
-  async function loginWeb3User(userAddress: string, signature: string) {
-    const config = {
-      method: 'post' as const,
-      url: `${process.env.NEXT_PUBLIC_API_BACKEND_BASE_URL}/openmesh-experts/functions/loginByWeb3Address`,
-      headers: {
-        'x-parse-application-id': `${process.env.NEXT_PUBLIC_API_BACKEND_KEY}`,
-      },
-      data: {
-        address: userAddress,
-        signature,
-      },
-    }
-
-    let dado
-
-    await axios(config).then(function (response) {
-      if (response.data) {
-        dado = response.data
-      }
-    })
-
-    return dado
-  }
-
-  const { address, isConnected, chain } = useAccount()
-  const { open } = useWeb3Modal()
-
-  useEffect(() => {
-    async function getWeb3Login() {
-      if (address && !user && !userHasAnyCookie) {
-        // trying web3 login
-        try {
-          let nonceUser = await getUserNonce(address)
-          nonceUser = nonceUser || '0'
-          const hash = hashObject(`${address}-${nonceUser}`)
-          console.log('message to hash')
-          console.log(hash)
-          const finalHash = `0x${hash}`
-          const signature = await signMessageAsync({
-            account: address,
-            message: finalHash,
-          })
-          const res = await loginWeb3User(address, signature)
-          setCookie(null, 'userSessionToken', res.sessionToken)
-          nookies.set(null, 'userSessionToken', res.sessionToken)
-          setUser(res)
-        } catch (err) {
-          toast.error(err)
-          console.log('error loging user')
-        }
-      }
-    }
-    getWeb3Login()
-  }, [address])
-
-  // useEffect(() => {
-  //   const handleClickOutside = (event) => {
-  //     if (
-  //       userNavbarRef.current &&
-  //       !userNavbarRef.current.contains(event.target)
-  //     ) {
-  //       setUserNavbarOpen(false)
-  //     }
-  //   }
-
-  //   // Adiciona o event listener ao document
-  //   document.addEventListener('mousedown', handleClickOutside)
-
-  //   // Cleanup function para remover o event listener
-  //   return () => {
-  //     document.removeEventListener('mousedown', handleClickOutside)
-  //   }
-  // }, [])
 
   return (
     <>

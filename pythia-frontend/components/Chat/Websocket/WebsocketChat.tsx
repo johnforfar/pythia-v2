@@ -44,7 +44,7 @@ const WebsocketComponent = ({
         socket.disconnect()
       }
     }
-  }, [workspaceId])
+  }, [workspaceId, handleNewResponseMessage])
 
   return <></>
 }
