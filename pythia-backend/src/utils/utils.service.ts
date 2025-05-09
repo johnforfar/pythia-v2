@@ -5,7 +5,7 @@ import { join } from 'path';
 import { BayesClassifier } from 'natural';
 import { createReadStream } from 'fs';
 import * as csv from 'csv-parser';
-import LinkifyIt from 'linkify-it';
+import * as Linkify from 'linkify-it';
 import Decimal from 'decimal.js';
 Decimal.set({ precision: 60 });
 import { ethers } from 'ethers';
@@ -26,7 +26,7 @@ export class UtilsService {
   private linkify;
 
   constructor(private readonly prisma: PrismaService) {
-    this.linkify = new LinkifyIt();
+    this.linkify = new Linkify();
   }
 
   //setting variables:
