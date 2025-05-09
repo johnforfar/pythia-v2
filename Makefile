@@ -63,10 +63,8 @@ setup-backend-env:
 
 # Start pythia-frontend
 up-frontend: setup-frontend-env
-	@echo "Building Pythia Frontend (forcing no-cache)..."
-	@cd pythia-frontend && docker compose build --no-cache
 	@echo "Starting Pythia Frontend..."
-	@cd pythia-frontend && docker compose up -d
+	@cd pythia-frontend && docker compose up -d --build
 	@echo "Pythia Frontend started."
 
 # Stop pythia-frontend

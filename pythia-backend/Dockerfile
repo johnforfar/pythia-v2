@@ -1,5 +1,5 @@
 # First stage - builder
-FROM ubuntu:latest AS builder
+FROM ubuntu:22.04 AS builder
 
 # Installing python and nodejs
 RUN apt-get update && \
