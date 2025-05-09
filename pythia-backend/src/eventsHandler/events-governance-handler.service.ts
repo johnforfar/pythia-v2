@@ -28,9 +28,9 @@ import { UpdatesGovernanceService } from 'src/tasks/updates-governance.service';
 @Injectable()
 export class EventsGovernanceHandlerService {
   //setting variables:
-  web3UrlProvider = process.env.WEB3_URL_PROVIDER;
+  web3UrlProvider = process.env.WEB3_URL_PROVIDER_GOVERNANCE;
   web3Provider = new ethers.providers.JsonRpcProvider(this.web3UrlProvider);
-  viewPrivateKey = process.env.VIEW_PRIVATE_KEY;
+  viewPrivateKey = process.env.VIEW_PRIVATE_KEY_GOVERNANCE;
   taskContractAddress = process.env.TASK_CONTRACT_ADDRESS;
   ipfsBaseURL = process.env.IPFS_BASE_URL;
   walletEther = new ethers.Wallet(this.viewPrivateKey);
@@ -43,7 +43,11 @@ export class EventsGovernanceHandlerService {
     private readonly usersService: UsersService,
     private readonly updatesGovernanceService: UpdatesGovernanceService,
   ) {
-    return;
+    return; // Prevent listeners from being set up for debugging
+    console.log(
+      'EventsGovernanceHandlerService - NFT Contract Address:',
+      this.nftContractAddress,
+    );
     this.setupDraftListeners();
     this.setupNFTListeners();
     this.setupGovernanceListeners();
@@ -99,6 +103,7 @@ export class EventsGovernanceHandlerService {
                 eventIndex: String(event.logIndex),
                 transactionHash: event.transactionHash,
                 blockNumber: String(event.blockNumber),
+                contractAddress: event.address,
                 taskId: String(proposalId),
                 address: senderAddress,
                 timestamp: timestamp,
@@ -180,6 +185,7 @@ export class EventsGovernanceHandlerService {
                 eventIndex: String(event.logIndex),
                 transactionHash: event.transactionHash,
                 blockNumber: String(event.blockNumber),
+                contractAddress: event.address,
                 taskId: String(proposalId),
                 address: senderAddress,
                 timestamp: timestamp,
@@ -250,6 +256,7 @@ export class EventsGovernanceHandlerService {
               eventIndex: String(event.logIndex),
               transactionHash: event.transactionHash,
               blockNumber: String(event.blockNumber),
+              contractAddress: event.address,
               taskId: String(proposalId),
               address: senderAddress,
               timestamp: timestamp,
@@ -310,6 +317,7 @@ export class EventsGovernanceHandlerService {
               eventIndex: String(event.logIndex),
               transactionHash: event.transactionHash,
               blockNumber: String(event.blockNumber),
+              contractAddress: event.address,
               address: senderAddress,
               timestamp: timestamp,
             },
@@ -382,6 +390,7 @@ export class EventsGovernanceHandlerService {
               eventIndex: String(event.logIndex),
               transactionHash: event.transactionHash,
               blockNumber: String(event.blockNumber),
+              contractAddress: event.address,
               address: senderAddress,
               timestamp: timestamp,
             },
@@ -455,6 +464,7 @@ export class EventsGovernanceHandlerService {
             data: JSON.stringify(finalData),
             eventIndex: String(event.logIndex),
             transactionHash: event.transactionHash,
+            contractAddress: event.address,
             address: to,
             blockNumber: String(event.blockNumber),
             timestamp: timestamp,

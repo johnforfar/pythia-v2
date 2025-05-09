@@ -327,21 +327,18 @@ model Submission {
 model Event {
   id String @id @default(uuid())
 
-  name String  //The event name
-  data String  //The event data
+  name            String? //the event name
+  data            String? //the event data as a stringfied json
+  transactionHash String? @unique
+  blockNumber     String?
+  eventIndex      String?
+  contractAddress String? // Address of the contract that emitted the event
+  taskId          String? //the taskId related to the event
+  address         String? //the address that emitted the event onchain (msg.sender)
+  timestamp       String? //Timestamp Unix global in seconds of when the event was emitted;
 
-  eventIndex String? //The logIndex
-  transactionHash String? //The transaction hash
-  blockNumber     String @default("0")
-
-  taskId String? //If the event is related to a task
-
-  address String? //Address related to the event (msg.sender / application sender etc)
-
-  timestamp String? //Timestamp Unix global in seconds of when the event was emitted;
-
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime? @updatedAt
+  createdAt DateTime  @default(now())
+  updatedAt DateTime? @updatedAt
 
   @@unique([eventIndex, transactionHash, blockNumber]) //cannot exist event with same event info and transactionHash
   @@map("event")
